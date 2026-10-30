@@ -8,6 +8,8 @@
 
 A swipe-to-help platform for real, verified bills — Tinder-style discovery with a fintech-grade payment pipeline behind it.
 
+**English** · [简体中文](README.zh-CN.md)
+
 [![Live app](https://img.shields.io/badge/live-billswipe.852367856.dpdns.org-7957FF?style=flat-square)](https://billswipe.852367856.dpdns.org)
 [![License: MIT](https://img.shields.io/badge/license-MIT-29C58A?style=flat-square)](LICENSE)
 [![Cloudflare Workers](https://img.shields.io/badge/runs%20on-Cloudflare%20Workers-F5A524?style=flat-square)](https://workers.cloudflare.com/)
@@ -15,7 +17,7 @@ A swipe-to-help platform for real, verified bills — Tinder-style discovery wit
 [![Languages](https://img.shields.io/badge/languages-English%20%C2%B7%20%E4%B8%AD%E6%96%87-7957FF?style=flat-square)](#languages)
 [![Follow on X](https://img.shields.io/badge/%F0%9D%95%8F-@0xkillcoin-191919?style=flat-square)](https://x.com/0xkillcoin)
 
-[Live demo](https://billswipe.852367856.dpdns.org) · [How it works](https://billswipe.852367856.dpdns.org/how-it-works) · [Trust & safety](https://billswipe.852367856.dpdns.org/trust) · [Follow the build on X](https://x.com/0xkillcoin)
+[Live demo](https://billswipe.852367856.dpdns.org) · [简体中文 README](README.zh-CN.md) · [How it works](https://billswipe.852367856.dpdns.org/how-it-works) · [Trust & safety](https://billswipe.852367856.dpdns.org/trust) · [Follow the build on X](https://x.com/0xkillcoin)
 
 </div>
 
@@ -89,6 +91,8 @@ All screenshots are captured from the live deployment with `npm run shots`.
 - **Activity** — help given (with payment status) and help received (respecting anonymity).
 - **Profile** with stats, achievements that are deliberately *not* spending-ranked, privacy toggles, notification preferences, password rotation, and blocked users.
 - **Notifications** for payment confirmations, bill approvals/rejections, incoming help and full funding.
+
+<a id="languages"></a>
 
 ### Languages
 - **English / 中文**, switchable from the header on every page — one tap in the mobile header, a segmented control on desktop.
