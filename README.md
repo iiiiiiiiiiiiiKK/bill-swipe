@@ -191,6 +191,8 @@ To go live, the change is confined to the server:
 
 No frontend change is required. Before doing that, this must be reviewed against the money-transmission rules of your jurisdiction — the app deliberately does **not** custody funds itself.
 
+**No Stripe account?** A self-hosted Binance Pay gateway (for example [BinancePayTool](https://github.com/qianyubtc/BinancePayTool)) fits the same provider seam. [`docs/deployment.md`](docs/deployment.md) spells out exactly what wiring it would take, plus the honest trade-offs. It is **not** implemented in this build.
+
 ---
 
 ## Run it locally

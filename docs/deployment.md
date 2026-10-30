@@ -117,6 +117,19 @@ npm run deploy                            # recreate fresh (schema + seed on fir
 4. Add a payout/refund path that mirrors `refundPayment`.
 5. Have the flow reviewed against local money-transmission rules before accepting a single real payment. The app never custodies funds itself by design.
 
+## Alternative rail: Binance Pay via a self-hosted gateway
+
+Stripe Connect needs a business entity and provider approval. For an individual operator in a region where that is not available, a self-hosted **Binance Pay gateway** is a plausible alternative — for example [BinancePayTool](https://github.com/qianyubtc/BinancePayTool), which polls a personal account's read-only transactions endpoint and matches orders by a unique amount suffix and a memo code.
+
+**This is not implemented in this repository.** Wiring it in would mean:
+
+1. Running the gateway (single Go binary + SQLite) behind HTTPS, keeping its `API_AUTH_KEY` in a Worker secret.
+2. Adding a `binancepay` provider in `src/worker/core/service.ts`: `createPaymentIntent` posts the order to the gateway, stores its `pay_url` as `provider_payment_id`, and the confirmation screen redirects there.
+3. Adding `POST /api/webhooks/binancepay` that verifies the gateway's HMAC-SHA256 signature (plus timestamp and nonce for replay protection) and calls `settlePayment(paymentId, { source: 'webhook' })`.
+4. Treating the gateway's suffix-adjusted paid amount as authoritative while still recording the nominal help amount against the bill.
+
+Trade-offs worth stating plainly before anyone does this: the gateway relies on a personal Binance account (account-risk and terms-of-service implications), it is read-only so refunds must be sent manually from the Binance app, and crypto rails carry their own compliance obligations. The application-level guarantees — one settlement per payment, atomic totals, audit logging — are unchanged because they live in `settlePayment`, not in the provider.
+
 ## Troubleshooting
 
 | Symptom | Cause / fix |
