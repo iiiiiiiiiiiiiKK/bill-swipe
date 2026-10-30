@@ -162,7 +162,7 @@ npm run dev                 # 终端 2：UI at http://127.0.0.1:5173
 
 ```bash
 npm run typecheck                              # 严格 TypeScript，零错误
-npm test                                       # 38 个单元/集成测试（真实 SQLite）
+npm test                                       # 46 个单元/集成测试（真实 SQLite + 字典校验）
 npm run test:e2e                               # 29 条 Playwright 端到端流程（桌面 Chrome + iPhone/WebKit）
 node scripts/smoke.mjs https://your-deployment # 31 项 API 契约检查
 node scripts/audit-ui.mjs https://your-deployment # 337 项响应式/无障碍检查

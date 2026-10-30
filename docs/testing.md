@@ -7,7 +7,7 @@ Recorded against the live deployment `https://billswipe.852367856.dpdns.org` and
 | Suite | Command | Result |
 | --- | --- | --- |
 | TypeScript (strict) | `npm run typecheck` | **0 errors** |
-| Unit + integration | `npm test` | **38 / 38 passed** |
+| Unit + integration | `npm test` | **46 / 46 passed** |
 | API contract (black box) | `node scripts/smoke.mjs <url>` | **31 / 31 passed** |
 | End-to-end journeys | `npm run test:e2e` | **29 passed, 1 skipped** (desktop Chrome + iPhone 13 / WebKit) |
 | Responsive / a11y / contrast (EN) | `node scripts/audit-ui.mjs <url> en` | **337 / 337 passed** across 8 viewports |
@@ -15,13 +15,14 @@ Recorded against the live deployment `https://billswipe.852367856.dpdns.org` and
 | Translation coverage | `node scripts/audit-i18n.mjs <url>` | **0 untranslated strings** across 13 routes |
 | Production build | `npm run build` | Success (main chunk ≈ 96 kB gzip) |
 
-## Unit and integration tests — 38 passing
+## Unit and integration tests — 46 passing
 
 Real SQLite (Node's built-in `node:sqlite`) driving the **production** schema and service layer through a thin adapter, so these are not stubs: the SQL, transactions and constraints are the ones that run in production.
 
 ```
 tests/money.test.ts     10 tests
 tests/service.test.ts   28 tests
+tests/i18n.test.ts       8 tests
 ```
 
 **Money** — formatting, minor-unit parsing, split display, `0.10 × 10 === 100` (no float drift), progress clamping, basis-point fees with rounding.
@@ -35,6 +36,8 @@ tests/service.test.ts   28 tests
 **Payments** — pending intent → single settlement; replay returns `alreadySettled` with no double increment; client idempotency key reuse returns the same payment; contribution capped at the outstanding balance; fully-funded transition refuses further intents; refund reverses the total and writes an audit entry; failed payments never touch the bill; anonymous helpers hidden from the public but visible to the owner; notifications and feed posts written in the same transaction.
 
 **Community & moderation** — statistics derived from real records, duplicate open reports rejected, admin overview/payment/user queries, audit records for every review action, self-ban refused.
+
+**Internationalisation** — no empty translations, placeholder parity between English and Chinese, every entry actually translated, and lookups that survive typographic differences (curly quotes, en/em dashes). This suite caught a real bug: a scripted edit had stripped the backslash from `\s+`, so `normaliseKey` was deleting the letter "s" from every key.
 
 **Concurrency** — three helpers race to fund a bill; the final `raised_amount` equals `target_amount` exactly and the bill ends `fully_funded`, never over-funded.
 
