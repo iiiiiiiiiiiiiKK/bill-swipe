@@ -11,7 +11,8 @@ A swipe-to-help platform for real, verified bills — Tinder-style discovery wit
 [![Live app](https://img.shields.io/badge/live-billswipe.852367856.dpdns.org-7957FF?style=flat-square)](https://billswipe.852367856.dpdns.org)
 [![License: MIT](https://img.shields.io/badge/license-MIT-29C58A?style=flat-square)](LICENSE)
 [![Cloudflare Workers](https://img.shields.io/badge/runs%20on-Cloudflare%20Workers-F5A524?style=flat-square)](https://workers.cloudflare.com/)
-[![Tests](https://img.shields.io/badge/tests-38%20unit%20%C2%B7%2027%20e2e-FF718B?style=flat-square)](docs/testing.md)
+[![Tests](https://img.shields.io/badge/tests-38%20unit%20%C2%B7%2029%20e2e-FF718B?style=flat-square)](docs/testing.md)
+[![Languages](https://img.shields.io/badge/languages-English%20%C2%B7%20%E4%B8%AD%E6%96%87-7957FF?style=flat-square)](#languages)
 [![Follow on X](https://img.shields.io/badge/%F0%9D%95%8F-@0xkillcoin-191919?style=flat-square)](https://x.com/0xkillcoin)
 
 [Live demo](https://billswipe.852367856.dpdns.org) · [How it works](https://billswipe.852367856.dpdns.org/how-it-works) · [Trust & safety](https://billswipe.852367856.dpdns.org/trust) · [Follow the build on X](https://x.com/0xkillcoin)
@@ -51,6 +52,14 @@ All screenshots are captured from the live deployment with `npm run shots`.
 
 <table>
   <tr>
+    <td width="50%"><img src="docs/screenshots/landing-zh-desktop.png" alt="Chinese landing page" /><br /><sub><b>中文界面</b> — one tap switches the whole product</sub></td>
+    <td width="50%"><img src="docs/screenshots/how-it-works-zh-desktop.png" alt="Chinese how it works" /><br /><sub>Every page is translated, not just the nav</sub></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td width="25%"><img src="docs/screenshots/landing-mobile-zh.png" alt="Chinese mobile landing" /><br /><sub>中文移动端</sub></td>
     <td width="25%"><img src="docs/screenshots/landing-mobile.png" alt="Mobile landing" /><br /><sub>Landing</sub></td>
     <td width="25%"><img src="docs/screenshots/discover-mobile.png" alt="Mobile discover" /><br /><sub>Discover</sub></td>
     <td width="25%"><img src="docs/screenshots/community-mobile.png" alt="Mobile community" /><br /><sub>Community</sub></td>
@@ -80,6 +89,13 @@ All screenshots are captured from the live deployment with `npm run shots`.
 - **Activity** — help given (with payment status) and help received (respecting anonymity).
 - **Profile** with stats, achievements that are deliberately *not* spending-ranked, privacy toggles, notification preferences, password rotation, and blocked users.
 - **Notifications** for payment confirmations, bill approvals/rejections, incoming help and full funding.
+
+### Languages
+- **English / 中文**, switchable from the header on every page — one tap in the mobile header, a segmented control on desktop.
+- The choice is remembered in the browser **and** synced to the account (`profile.locale`), so it follows you to another device.
+- First visit follows the browser language (`navigator.language`), so Chinese users land in Chinese automatically.
+- Everything is translated: navigation, landing copy, the swipe deck, payment flow, wizard, community, settings, admin panels, error states and the 404 page. Demo fixtures ship in both languages; real member posts are shown exactly as written.
+- Dates, relative times and number formatting follow the active locale.
 
 ### Community
 - A live feed generated from actual help records (never fabricated testimonials).
@@ -230,9 +246,11 @@ Open <http://127.0.0.1:5173>. The demo dataset (16 fictional bills, 15 people, h
 ```bash
 npm run typecheck   # strict TypeScript, zero errors
 npm test            # 38 unit/integration tests against real SQLite
-npm run test:e2e    # 28 Playwright journeys (desktop Chrome + iPhone 13 / WebKit)
+npm run test:e2e    # 29 Playwright journeys (desktop Chrome + iPhone 13 / WebKit)
 node scripts/smoke.mjs https://your-deployment          # 31 API contract checks
 node scripts/audit-ui.mjs https://your-deployment       # 337 responsive/a11y checks
+node scripts/audit-ui.mjs https://your-deployment zh    # same, in Chinese
+node scripts/audit-i18n.mjs https://your-deployment     # 0 untranslated strings expected
 ```
 
 What the suite actually proves:
@@ -241,7 +259,8 @@ What the suite actually proves:
 - **Authorisation** — normal users get `403` on admin routes; users cannot edit or close other people's bills; anonymous helpers are hidden from the public but visible to the bill owner.
 - **UI honesty** — the sandbox banner appears at the confirmation step; success only renders after the server responds.
 - **Responsive quality** — zero horizontal overflow, ≥32 px tap targets, no sub-10 px interface text, and WCAG AA contrast across 320 → 1920 px viewports.
-- **Real journeys** — register → swipe → choose amount → confirm → success, plus the five-step posting wizard and the admin review queue.
+- **Real journeys** — register → swipe → choose amount → confirm → success, plus the five-step posting wizard, the admin review queue and **switching the entire UI to Chinese and back**.
+- **Translation coverage** — every route is crawled with Chinese active and any residual English copy is reported; the current build reports **0 untranslated strings**.
 
 Results from the recorded run are in [`docs/testing.md`](docs/testing.md).
 
@@ -285,7 +304,7 @@ src/
     seed/            labelled demo dataset
   components/        design-system primitives, bill cards, payment sheet, admin widgets
   pages/             Landing, Discover, Bill detail, Post wizard, Activity, Profile, Admin…
-  lib/               API client, auth context, formatting helpers
+  lib/               API client, auth context, i18n (dictionary + switcher), localised labels
 tests/               unit + integration (vitest) and e2e journeys (playwright)
 scripts/             smoke test, UI audit, screenshot capture
 docs/                architecture, deployment, testing, screenshots
@@ -303,7 +322,7 @@ Written down honestly rather than hidden:
 4. **Single Durable Object.** All writes serialize through one object. Excellent for correctness, and fine at this scale, but it is a throughput ceiling — shard by region or move to D1/Postgres before real volume.
 5. **No KYC/identity checks.** Nothing verifies that the person posting a bill is who they claim to be. Moderation is human review of a document, which catches obvious fakes and nothing more.
 6. **Image redaction is manual.** The UI warns and asks uploaders to blur sensitive details; it does not automatically detect or redact PII inside images.
-7. **Chinese translation is scaffolded, not shipped.** The `locale` field and copy structure exist; only English is wired through the UI.
+7. **Two languages, not a full i18n pipeline.** English and Chinese ship today; adding a third locale means extending `src/lib/i18n.tsx` (keys are English source strings). Server-generated notification copy is stored in English and localised at render time.
 8. **Demo data is seeded** and clearly labelled (`is_demo = 1`, "Demo" badges). Impact statistics include it, and say so in the UI.
 
 ---

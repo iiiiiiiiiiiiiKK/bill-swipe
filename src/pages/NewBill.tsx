@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useI18n } from '@/lib/i18n';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -34,6 +35,7 @@ const STEPS = ['Category', 'Details', 'Receipt', 'Story', 'Review'] as const;
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
 
 export default function NewBill({ edit = false }: { edit?: boolean }) {
+  const { t } = useI18n();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -177,7 +179,7 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center gap-2 text-[13px] text-muted">
         <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-        Loading…
+        {t('Loading…')}
       </div>
     );
   }
@@ -224,7 +226,7 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
                   active ? 'text-ink' : done ? 'text-[#0F7A52]' : 'text-[#7C776F]',
                 )}
               >
-                {label}
+                {t(label)}
               </span>
             </li>
           );
@@ -242,8 +244,8 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
           >
             {step === 1 && (
               <section>
-                <h2 className="text-[16px] font-semibold">What kind of bill is it?</h2>
-                <p className="mt-1 text-[12.5px] text-muted">Pick the closest match — it helps people find your story.</p>
+                <h2 className="text-[16px] font-semibold">{t('What kind of bill is it?')}</h2>
+                <p className="mt-1 text-[12.5px] text-muted">{t('Pick the closest match — it helps people find your story.')}</p>
                 <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
                   {BILL_CATEGORIES.map((item) => {
                     const active = category === item.id;
@@ -266,8 +268,8 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
                         <span className="flex size-8 items-center justify-center rounded-xl" style={{ background: item.tint, color: item.ink }}>
                           <FileText className="size-4" aria-hidden="true" />
                         </span>
-                        <span className="text-[12.5px] font-semibold leading-tight">{item.short}</span>
-                        <span className="text-[10.5px] leading-snug text-muted">{item.blurb}</span>
+                        <span className="text-[12.5px] font-semibold leading-tight">{t(item.short)}</span>
+                        <span className="text-[10.5px] leading-snug text-muted">{t(item.blurb)}</span>
                       </button>
                     );
                   })}
@@ -278,15 +280,15 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
             {step === 2 && (
               <section className="space-y-4">
                 <div>
-                  <h2 className="text-[16px] font-semibold">The basics</h2>
-                  <p className="mt-1 text-[12.5px] text-muted">Be concrete: what is the bill for, how much, and by when?</p>
+                  <h2 className="text-[16px] font-semibold">{t('The basics')}</h2>
+                  <p className="mt-1 text-[12.5px] text-muted">{t('Be concrete: what is the bill for, how much, and by when?')}</p>
                 </div>
                 <Field
                   id="bill-title"
-                  label="Bill title"
+                  label={t('Bill title')}
                   value={title}
                   onChange={setTitle}
-                  placeholder="Groceries for the week until my first paycheck"
+                  placeholder={t('Groceries for the week until my first paycheck')}
                   error={fields.title}
                   hint={`${title.length}/90 characters`}
                   required
@@ -294,7 +296,7 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
                 <div className="grid gap-3 sm:grid-cols-[1fr_112px]">
                   <div>
                     <label htmlFor="bill-amount" className="mb-1.5 block text-[12px] font-semibold text-[#57534E]">
-                      Amount needed <span className="text-[#C02444]">*</span>
+                      {t('Amount needed')} <span className="text-[#C02444]">*</span>
                     </label>
                     <div
                       className={cn(
@@ -316,7 +318,7 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
                   </div>
                   <div>
                     <label htmlFor="bill-currency" className="mb-1.5 block text-[12px] font-semibold text-[#57534E]">
-                      Currency
+                      {t('Currency')}
                     </label>
                     <select
                       id="bill-currency"
@@ -335,7 +337,7 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Field
                     id="bill-paid"
-                    label="Already paid (optional)"
+                    label={t('Already paid (optional)')}
                     icon={<span className="text-[13px] font-semibold">$</span>}
                     inputMode="decimal"
                     value={paid}
@@ -345,7 +347,7 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
                   />
                   <div>
                     <label htmlFor="bill-due" className="mb-1.5 block text-[12px] font-semibold text-[#57534E]">
-                      Due date (optional)
+                      {t('Due date (optional)')}
                     </label>
                     <div className="flex items-center gap-2 rounded-xl border border-line bg-white px-3 focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15">
                       <CalendarDays className="size-4 text-[#736E66]" aria-hidden="true" />
@@ -361,17 +363,17 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
                 </div>
                 <Field
                   id="bill-handle"
-                  label="Where should help go? (optional)"
+                  label={t('Where should help go? (optional)')}
                   value={handle}
                   onChange={setHandle}
-                  placeholder="@handle, bank reference, or leave blank"
+                  placeholder={t('@handle, bank reference, or leave blank')}
                   hint="Shown only to moderators. Never collect card numbers here."
                 />
 
                 {amountMinor > 0 && (
                   <div className="rounded-2xl bg-[#FAF8F5] p-3.5">
                     <div className="flex items-baseline justify-between text-[12.5px]">
-                      <span className="text-muted">Still needed</span>
+                      <span className="text-muted">{t('Still needed')}</span>
                       <span className="money-tabular text-[17px] font-bold">{formatMoney(remainingMinor, currency)}</span>
                     </div>
                     <ProgressBar value={percent(paidMinor, amountMinor)} tone="mint" className="mt-2 h-1.5" />
@@ -382,15 +384,15 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
 
             {step === 3 && (
               <section>
-                <h2 className="text-[16px] font-semibold">Upload the bill</h2>
+                <h2 className="text-[16px] font-semibold">{t('Upload the bill')}</h2>
                 <p className="mt-1 text-[12.5px] leading-relaxed text-muted">
-                  A screenshot or photo of the actual bill. JPG, PNG, WEBP or PDF up to 8 MB.
+                  {t('A screenshot or photo of the actual bill. JPG, PNG, WEBP or PDF up to 8 MB.')}
                 </p>
 
                 <div className="mt-3 flex items-start gap-2.5 rounded-2xl border border-dashed border-[#E4B33D] bg-amber-soft px-3.5 py-3">
                   <AlertTriangle className="mt-0.5 size-4 shrink-0 text-[#9A6600]" aria-hidden="true" />
                   <p className="text-[11.5px] leading-relaxed text-[#7A5200]">
-                    <strong className="font-semibold">Cover up sensitive details first.</strong> Blur or crop ID numbers,
+                    <strong className="font-semibold">{t('Cover up sensitive details first.')}</strong> Blur or crop ID numbers,
                     card numbers, full home addresses, and medical specifics. Originals are visible only to moderators —
                     but never upload what you would not want a stranger to see by mistake.
                   </p>
@@ -424,15 +426,15 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
                       <span className="mt-0.5 text-[11.5px] text-muted">
                         {(file.size / 1024).toFixed(0)} KB · {receiptId ? 'stored privately' : 'not saved yet'}
                       </span>
-                      <span className="mt-2 text-[11.5px] font-semibold text-brand-ink">Replace file</span>
+                      <span className="mt-2 text-[11.5px] font-semibold text-brand-ink">{t('Replace file')}</span>
                     </>
                   ) : (
                     <>
                       <span className="flex size-12 items-center justify-center rounded-2xl bg-brand-soft">
                         <Upload className="size-5 text-brand-ink" aria-hidden="true" />
                       </span>
-                      <span className="mt-3 text-[13.5px] font-semibold">Tap to choose a file</span>
-                      <span className="mt-1 text-[11.5px] text-muted">or drag it in on desktop</span>
+                      <span className="mt-3 text-[13.5px] font-semibold">{t('Tap to choose a file')}</span>
+                      <span className="mt-1 text-[11.5px] text-muted">{t('or drag it in on desktop')}</span>
                     </>
                   )}
                 </label>
@@ -452,7 +454,7 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
 
             {step === 4 && (
               <section>
-                <h2 className="text-[16px] font-semibold">Tell your story</h2>
+                <h2 className="text-[16px] font-semibold">{t('Tell your story')}</h2>
                 <p className="mt-1 text-[12.5px] leading-relaxed text-muted">
                   People connect with people, not just numbers. What happened, why you need help, and how the money
                   will be used.
@@ -469,7 +471,7 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
                   <span id="story-hint" className={storyWords < 20 ? 'text-[#A96A00]' : 'text-[#0F7A52]'}>
                     {storyWords} words · {story.length}/2000 characters
                   </span>
-                  <span className="text-[#736E66]">Minimum 60 characters</span>
+                  <span className="text-[#736E66]">{t('Minimum 60 characters')}</span>
                 </div>
                 <div className="mt-3 grid gap-2 sm:grid-cols-3">
                   {[
@@ -488,9 +490,9 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
 
             {step === 5 && (
               <section>
-                <h2 className="text-[16px] font-semibold">Review before submitting</h2>
+                <h2 className="text-[16px] font-semibold">{t('Review before submitting')}</h2>
                 <p className="mt-1 text-[12.5px] text-muted">
-                  A moderator reviews every bill before it appears in Discover.
+                  {t('A moderator reviews every bill before it appears in Discover.')}
                 </p>
 
                 <div className="mt-3 overflow-hidden rounded-[22px] border border-line bg-white">
@@ -505,13 +507,13 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
                       >
                         {categoryOf(category).short}
                       </span>
-                      <Pill tone="amber">Pending review</Pill>
-                      {receiptId ? <Pill tone="mint">Receipt attached</Pill> : <Pill tone="neutral">No receipt</Pill>}
+                      <Pill tone="amber">{t('Pending review')}</Pill>
+                      {receiptId ? <Pill tone="mint">{t('Receipt attached')}</Pill> : <Pill tone="neutral">{t('No receipt')}</Pill>}
                     </div>
                     <h3 className="mt-2 text-[16px] font-semibold leading-snug">{title || 'Untitled bill'}</h3>
                     <p className="mt-1 line-clamp-4 whitespace-pre-line text-[13px] leading-relaxed text-[#5C5862]">{story}</p>
                     <div className="mt-3 flex items-baseline justify-between border-t border-line pt-2.5">
-                      <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#736E66]">Asking for</span>
+                      <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#736E66]">{t('Asking for')}</span>
                       <span className="money-tabular text-[19px] font-bold">{formatMoney(remainingMinor, currency)}</span>
                     </div>
                   </div>
@@ -544,7 +546,7 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
       <div className="mt-6 flex items-center gap-2.5">
         {step > 1 && (
           <Button variant="pass" size="lg" onClick={() => setStep((s) => (s - 1) as Step)}>
-            Back
+            {t('Back')}
           </Button>
         )}
         {step < 5 ? (
@@ -555,7 +557,7 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
             onClick={() => setStep((s) => (s + 1) as Step)}
             trailing={<ArrowRight className="size-4" aria-hidden="true" />}
           >
-            Continue
+            {t('Continue')}
           </Button>
         ) : (
           <Button
@@ -574,10 +576,10 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
         <div className="mt-3 flex items-center justify-between rounded-xl bg-[#FAF8F5] px-3 py-2.5 text-[12px]">
           <span className="flex items-center gap-1.5 text-muted">
             <ImagePlus className="size-3.5" aria-hidden="true" />
-            Skip without a receipt?
+            {t('Skip without a receipt?')}
           </span>
           <button type="button" onClick={() => setStep(4)} className="font-semibold text-brand-ink">
-            Continue anyway
+            {t('Continue anyway')}
           </button>
         </div>
       )}
@@ -590,11 +592,11 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
 
       <div className="mt-4 flex items-center justify-between text-[12px]">
         <LinkButton to="/trust" variant="ghost" size="sm">
-          Safety guidelines
+          {t('Safety guidelines')}
         </LinkButton>
         <button type="button" onClick={() => navigate(-1)} className="text-muted hover:text-ink">
           <X className="mr-1 inline size-3.5" aria-hidden="true" />
-          Discard
+          {t('Discard')}
         </button>
       </div>
     </div>

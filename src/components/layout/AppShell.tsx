@@ -1,4 +1,6 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useI18n } from '@/lib/i18n';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Bell, Compass, Heart, House, Plus, Search, Shield, Sparkles, UserRound, Wallet } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -24,6 +26,7 @@ const MOBILE_NAV = [
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const { t } = useI18n();
   const { user, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -54,14 +57,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-ink focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white"
       >
-        Skip to content
+        {t('Skip to content')}
       </a>
 
       {/* Desktop top bar */}
       <header className="sticky top-0 z-40 hidden border-b border-line/80 glass-bar lg:block">
         <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-6 px-8">
           <LinkBrand />
-          <nav aria-label="Primary" className="flex items-center gap-1">
+          <nav aria-label={t('Primary')} className="flex items-center gap-1">
             {NAV.map((item) => (
               <NavLink
                 key={item.to}
@@ -82,7 +85,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                         transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                       />
                     )}
-                    <span className="relative">{item.label}</span>
+                    <span className="relative">{t(item.label)}</span>
                   </>
                 )}
               </NavLink>
@@ -91,23 +94,24 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <div className="ml-auto flex items-center gap-2">
             <LinkButton to="/discover" variant="ghost" size="sm" icon={<Search className="size-4" aria-hidden="true" />}>
-              Find a bill
+              {t('Find a bill')}
             </LinkButton>
             <a
               href="https://x.com/0xkillcoin"
               target="_blank"
               rel="noreferrer noopener"
-              aria-label="Author on X"
+              aria-label={t('Author on X')}
               className="inline-flex size-9 items-center justify-center rounded-xl text-[#57534E] transition hover:bg-black/[0.05] hover:text-ink"
             >
               <XIcon className="size-[15px]" />
             </a>
             {user?.role === 'admin' && (
               <LinkButton to="/admin" variant="ghost" size="sm" icon={<Shield className="size-4" aria-hidden="true" />}>
-                Admin
+                {t('Admin')}
               </LinkButton>
             )}
-            <LinkButton to="/notifications" variant="ghost" size="sm" aria-label="Notifications" className="relative">
+            <LanguageSwitcher className="mr-0.5" />
+            <LinkButton to="/notifications" variant="ghost" size="sm" aria-label={t('Notifications')} className="relative">
               <Bell className="size-[18px]" aria-hidden="true" />
               {unread > 0 && (
                 <span className="absolute right-1 top-1 flex size-4 items-center justify-center rounded-full bg-coral text-[9px] font-bold text-white">
@@ -116,17 +120,17 @@ export function AppShell({ children }: { children: ReactNode }) {
               )}
             </LinkButton>
             <LinkButton to="/bills/new" variant="primary" size="sm" icon={<Plus className="size-4" aria-hidden="true" />}>
-              Post a bill
+              {t('Post a bill')}
             </LinkButton>
             {loading ? (
               <div className="size-9 animate-pulse rounded-full bg-[#EFEDE9]" />
             ) : user ? (
-              <NavLink to="/profile" aria-label="Your profile" className="ml-1">
+              <NavLink to="/profile" aria-label={t('Your profile')} className="ml-1">
                 <Avatar name={user.displayName} seed={user.avatarSeed} src={user.avatarUrl} size={34} />
               </NavLink>
             ) : (
               <LinkButton to="/login" variant="secondary" size="sm">
-                Sign in
+                {t('Sign in')}
               </LinkButton>
             )}
           </div>
@@ -135,24 +139,25 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile top bar */}
       <header className="sticky top-0 z-40 border-b border-line/70 glass-bar safe-top lg:hidden">
-        <div className="flex h-14 items-center gap-3 px-4">
+        <div className="flex h-14 items-center gap-2 px-3 min-[360px]:gap-3 min-[360px]:px-4">
           <LinkBrand compact />
           <div className="ml-auto flex items-center gap-1">
+            <LanguageSwitcher variant="compact" />
             <a
               href="https://x.com/0xkillcoin"
               target="_blank"
               rel="noreferrer noopener"
-              aria-label="Author on X"
+              aria-label={t('Author on X')}
               className="inline-flex size-9 items-center justify-center rounded-xl text-[#57534E] transition active:bg-black/[0.06]"
             >
               <XIcon className="size-[15px]" />
             </a>
             {user?.role === 'admin' && (
-              <LinkButton to="/admin" variant="ghost" size="sm" aria-label="Admin" className="px-2">
+              <LinkButton to="/admin" variant="ghost" size="sm" aria-label={t('Admin')} className="px-2">
                 <Shield className="size-[18px]" aria-hidden="true" />
               </LinkButton>
             )}
-            <LinkButton to="/notifications" variant="ghost" size="sm" aria-label="Notifications" className="relative px-2">
+            <LinkButton to="/notifications" variant="ghost" size="sm" aria-label={t('Notifications')} className="relative px-2">
               <Bell className="size-[19px]" aria-hidden="true" />
               {unread > 0 && (
                 <span className="absolute right-0.5 top-0.5 flex size-4 items-center justify-center rounded-full bg-coral text-[9px] font-bold text-white">
@@ -163,12 +168,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             {loading ? (
               <div className="size-8 animate-pulse rounded-full bg-[#EFEDE9]" />
             ) : user ? (
-              <NavLink to="/profile" aria-label="Your profile">
+              <NavLink to="/profile" aria-label={t('Your profile')}>
                 <Avatar name={user.displayName} seed={user.avatarSeed} src={user.avatarUrl} size={30} />
               </NavLink>
             ) : (
-              <LinkButton to="/login" variant="primary" size="sm" className="h-8 px-3 text-[12.5px]">
-                Sign in
+              <LinkButton to="/login" variant="primary" size="sm" className="h-8 px-2.5 text-[12px] min-[360px]:px-3 min-[360px]:text-[12.5px]">
+                {t('Sign in')}
               </LinkButton>
             )}
           </div>
@@ -183,7 +188,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile bottom nav */}
       <nav
-        aria-label="Primary mobile"
+        aria-label={t('Primary mobile')}
         className="fixed inset-x-0 bottom-0 z-40 border-t border-line/80 glass-bar safe-bottom lg:hidden"
       >
         <div className="mx-auto flex max-w-md items-stretch justify-around gap-0.5 px-1 pb-1 pt-1.5">
@@ -216,13 +221,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           <button
             type="button"
             onClick={() => navigate('/bills/new')}
-            aria-label="Post a bill"
+            aria-label={t('Post a bill')}
             className="relative flex min-w-0 flex-1 flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[10.5px] font-semibold text-[#6F6B63] active:bg-black/[0.04]"
           >
             <span className="flex size-[21px] items-center justify-center rounded-lg bg-brand text-white">
               <Plus className="size-3.5" aria-hidden="true" strokeWidth={3} />
             </span>
-            <span>Post</span>
+            <span>{t('Post')}</span>
           </button>
         </div>
       </nav>
@@ -232,8 +237,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 }
 
 function LinkBrand({ compact = false }: { compact?: boolean }) {
+  const { t } = useI18n();
   return (
-    <NavLink to="/" className="flex min-h-[36px] shrink-0 items-center gap-2 py-1" aria-label="BILL SWIPE home">
+    <NavLink to="/" className="flex min-h-[36px] shrink-0 items-center gap-2 py-1" aria-label={t('BILL SWIPE home')}>
       <Logo size={compact ? 28 : 32} />
       <Wordmark className={compact ? 'text-[15px]' : 'text-[17px]'} compact={compact} />
     </NavLink>
@@ -241,6 +247,7 @@ function LinkBrand({ compact = false }: { compact?: boolean }) {
 }
 
 function Footer() {
+  const { t } = useI18n();
   return (
     <footer className="mt-14 border-t border-line bg-white/60">
       <div className="mx-auto flex max-w-[1440px] flex-col gap-6 px-5 py-9 sm:px-8 lg:flex-row lg:items-start lg:justify-between">
@@ -250,8 +257,7 @@ function Footer() {
             <Wordmark className="text-[15px]" />
           </div>
           <p className="mt-2.5 text-[13px] leading-relaxed text-muted">
-            Someone&apos;s bill. Someone&apos;s kindness. Swipe to discover real stories, then choose to help — never
-            automatically.
+            {t("Someone's bill. Someone's kindness. Swipe to discover real stories, then choose to help — never automatically.")}
           </p>
           <a
             href="https://x.com/0xkillcoin"
@@ -260,12 +266,12 @@ function Footer() {
             className="mt-3 inline-flex min-h-[32px] items-center gap-1.5 text-[12.5px] font-semibold text-[#57534E] transition hover:text-ink"
           >
             <XIcon className="size-3.5" />
-            Built by @0xkillcoin
+            {t('Built by @0xkillcoin')}
           </a>
         </div>
         <div className="grid grid-cols-2 gap-x-10 gap-y-5 text-[13px] sm:grid-cols-3">
           <FooterCol
-            title="Product"
+            title={t('Product')}
             links={[
               { to: '/discover', label: 'Discover' },
               { to: '/bills/new', label: 'Post a bill' },
@@ -274,7 +280,7 @@ function Footer() {
             ]}
           />
           <FooterCol
-            title="Trust"
+            title={t('Trust')}
             links={[
               { to: '/trust', label: 'Trust & safety' },
               { to: '/payments-info', label: 'Payment sandbox' },
@@ -282,7 +288,7 @@ function Footer() {
             ]}
           />
           <FooterCol
-            title="More"
+            title={t('More')}
             links={[
               { to: '/how-it-works', label: 'How it works' },
               { to: '/about', label: 'About the project' },
@@ -293,12 +299,10 @@ function Footer() {
       </div>
       <div className="border-t border-line/70 px-5 py-4 sm:px-8">
         <div className="mx-auto flex max-w-[1440px] flex-col items-start justify-between gap-2 text-[11.5px] text-muted sm:flex-row sm:items-center">
-          <p>
-            © {new Date().getFullYear()} BILL SWIPE · Payment sandbox build. No real money is moved in this deployment.
-          </p>
+          <p>{t('© {year} BILL SWIPE · Payment sandbox build. No real money is moved in this deployment.', { year: new Date().getFullYear() })}</p>
           <p className="inline-flex items-center gap-1.5">
             <Sparkles className="size-3" aria-hidden="true" />
-            Someone&apos;s bill. Someone&apos;s kindness.
+            {t("Someone's bill. Someone's kindness.")}
           </p>
         </div>
       </div>
@@ -313,9 +317,10 @@ function FooterCol({
   title: string;
   links: { to: string; label: string; external?: boolean }[];
 }) {
+  const { t } = useI18n();
   return (
     <div>
-      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">{title}</p>
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">{t(title)}</p>
       <ul className="space-y-0.5">
         {links.map((link) => (
           <li key={link.label}>
@@ -326,11 +331,11 @@ function FooterCol({
                 rel="noreferrer noopener"
                 className="inline-flex min-h-[32px] items-center text-[#57534E] transition hover:text-brand-ink"
               >
-                {link.label} ↗
+                {t(link.label)} ↗
               </a>
             ) : (
               <NavLink to={link.to} className="inline-flex min-h-[32px] items-center text-[#57534E] transition hover:text-brand-ink">
-                {link.label}
+                {t(link.label)}
               </NavLink>
             )}
           </li>

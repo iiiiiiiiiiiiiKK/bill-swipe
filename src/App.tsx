@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect } from 'react';
+import { useI18n } from '@/lib/i18n';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/layout/AppShell';
 import { Logo } from './components/brand/Logo';
@@ -55,11 +56,12 @@ export default function App() {
 }
 
 function RouteFallback() {
+  const { t } = useI18n();
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
       <div className="flex flex-col items-center gap-3">
         <Logo size={40} className="animate-pulse" />
-        <p className="text-[13px] font-medium text-muted">Loading…</p>
+        <p className="text-[13px] font-medium text-muted">{t('Loading…')}</p>
       </div>
     </div>
   );

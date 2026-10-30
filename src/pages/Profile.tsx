@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useI18n } from '@/lib/i18n';
+import { useAchievementLabel } from '@/lib/labels';
 import { useNavigate } from 'react-router-dom';
 import { Check, Loader2, LogOut, Lock, Save, ShieldCheck, Sparkles, UserRound } from 'lucide-react';
 import { api, ApiRequestError } from '@/lib/api';
@@ -9,12 +11,14 @@ import { Button, LinkButton } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { Pill, ProgressBar, Skeleton } from '@/components/ui/Primitives';
 import { Field } from './Auth';
-import { formatMoney } from '@shared/money';
-import { formatDate } from '@/lib/utils';
+
+
 import { cn } from '@/lib/utils';
 import type { MeProfile, PublicUser } from '@shared/types';
 
 export default function ProfilePage() {
+  const { t, money, date: formatDate } = useI18n();
+  const achievementLabel = useAchievementLabel();
   const { user, loading: authLoading, logout, setUser } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
@@ -93,7 +97,7 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-[860px]">
-      <PageHeader title="Your profile" description="Control how you appear, how you are notified, and how you help." />
+      <PageHeader title={t('Your profile')} description="Control how you appear, how you are notified, and how you help." />
 
       <div className="space-y-4 px-5 pb-12 sm:px-8">
         <section className="overflow-hidden rounded-[24px] border border-line bg-white shadow-soft">
@@ -104,7 +108,7 @@ export default function ProfilePage() {
             {user.role === 'admin' && (
               <div className="absolute right-4 top-4">
                 <Pill tone="brand" icon={<ShieldCheck className="size-3" aria-hidden="true" />}>
-                  Admin
+                  {t('Admin')}
                 </Pill>
               </div>
             )}
@@ -122,7 +126,7 @@ export default function ProfilePage() {
               </div>
               <div className="flex gap-1.5">
                 <LinkButton to="/bills" variant="ghost" size="sm" className="border border-line">
-                  My bills
+                  {t('My bills')}
                 </LinkButton>
                 <Button
                   variant="ghost"
@@ -134,16 +138,16 @@ export default function ProfilePage() {
                   }}
                   icon={<LogOut className="size-3.5" aria-hidden="true" />}
                 >
-                  Sign out
+                  {t('Sign out')}
                 </Button>
               </div>
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <Stat label="Bills helped" value={String(user.stats.helpedCount)} />
-              <Stat label="Total given" value={formatMoney(user.stats.helpedAmount)} />
-              <Stat label="Bills posted" value={String(user.stats.billsPosted)} />
-              <Stat label="Fully funded" value={String(user.stats.billsCompleted)} />
+              <Stat label={t('Bills helped')} value={String(user.stats.helpedCount)} />
+              <Stat label={t('Total given')} value={money(user.stats.helpedAmount)} />
+              <Stat label={t('Bills posted')} value={String(user.stats.billsPosted)} />
+              <Stat label={t('Fully funded')} value={String(user.stats.billsCompleted)} />
             </div>
           </div>
         </section>
@@ -151,13 +155,15 @@ export default function ProfilePage() {
         <section className="rounded-[22px] border border-line bg-white p-5">
           <h2 className="flex items-center gap-2 text-[14px] font-semibold">
             <Sparkles className="size-4 text-brand-ink" aria-hidden="true" />
-            Achievements
+            {t('Achievements')}
           </h2>
           <p className="mt-1 text-[11.5px] leading-relaxed text-muted">
             Earned by showing up, never by spending the most. No leaderboards here.
           </p>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-            {user.achievements.map((achievement) => (
+            {user.achievements.map((raw) => {
+              const achievement = { ...raw, ...achievementLabel(raw.id, raw.label, raw.description) };
+              return (
               <li
                 key={achievement.id}
                 className={cn(
@@ -178,20 +184,21 @@ export default function ProfilePage() {
                 <p className="mt-0.5 text-[11px] leading-snug text-muted">{achievement.description}</p>
                 {!achievement.earned && <ProgressBar value={achievement.progress * 100} className="mt-2 h-1" />}
               </li>
-            ))}
+              );
+            })}
           </ul>
         </section>
 
         <section className="rounded-[22px] border border-line bg-white p-5">
           <h2 className="flex items-center gap-2 text-[14px] font-semibold">
             <UserRound className="size-4 text-brand-ink" aria-hidden="true" />
-            Public profile
+            {t('Public profile')}
           </h2>
           <div className="mt-3 space-y-3">
-            <Field id="display-name" label="Display name" value={form.displayName} onChange={(v) => setForm((f) => ({ ...f, displayName: v }))} />
+            <Field id="display-name" label={t('Display name')} value={form.displayName} onChange={(v) => setForm((f) => ({ ...f, displayName: v }))} />
             <div>
               <label htmlFor="bio" className="mb-1.5 block text-[12px] font-semibold text-[#57534E]">
-                Short bio
+                {t('Short bio')}
               </label>
               <textarea
                 id="bio"
@@ -199,15 +206,15 @@ export default function ProfilePage() {
                 onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value.slice(0, 300) }))}
                 rows={3}
                 className="w-full resize-none rounded-xl border border-line px-3 py-2 text-[13px] leading-relaxed outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
-                placeholder="A line or two about you."
+                placeholder={t('A line or two about you.')}
               />
               <p className="mt-1 text-[11px] text-[#736E66]">{form.bio.length}/300</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Field id="region" label="Region" value={form.region} onChange={(v) => setForm((f) => ({ ...f, region: v }))} hint="Coarse only — city or state. Never an address." />
+              <Field id="region" label={t('Region')} value={form.region} onChange={(v) => setForm((f) => ({ ...f, region: v }))} hint="Coarse only — city or state. Never an address." />
               <div>
                 <label htmlFor="country" className="mb-1.5 block text-[12px] font-semibold text-[#57534E]">
-                  Country
+                  {t('Country')}
                 </label>
                 <select
                   id="country"
@@ -227,47 +234,47 @@ export default function ProfilePage() {
         </section>
 
         <section className="rounded-[22px] border border-line bg-white p-5">
-          <h2 className="text-[14px] font-semibold">Privacy &amp; notifications</h2>
+          <h2 className="text-[14px] font-semibold">{t('Privacy & notifications')}</h2>
           <div className="mt-3 space-y-1.5">
             <Toggle
-              label="Help anonymously by default"
+              label={t('Help anonymously by default')}
               description="Pre-checks the anonymous option on every payment."
               checked={prefs.anonymousByDefault}
               onChange={(v) => setPrefs((p) => ({ ...p, anonymousByDefault: v }))}
             />
             <Toggle
-              label="Public profile"
+              label={t('Public profile')}
               description="Let other members see your name and help stats."
               checked={prefs.publicProfile}
               onChange={(v) => setPrefs((p) => ({ ...p, publicProfile: v }))}
             />
             <Toggle
-              label="Email notifications"
+              label={t('Email notifications')}
               description="Payment receipts, bill approvals and review results."
               checked={prefs.notifyEmail}
               onChange={(v) => setPrefs((p) => ({ ...p, notifyEmail: v }))}
             />
             <Toggle
-              label="In-app notifications"
+              label={t('In-app notifications')}
               description="The bell icon updates."
               checked={prefs.notifyInApp}
               onChange={(v) => setPrefs((p) => ({ ...p, notifyInApp: v }))}
             />
           </div>
           <Button className="mt-4" onClick={() => void save()} disabled={saving} icon={saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" aria-hidden="true" />}>
-            Save changes
+            {t('Save changes')}
           </Button>
         </section>
 
         <section className="rounded-[22px] border border-line bg-white p-5">
           <h2 className="flex items-center gap-2 text-[14px] font-semibold">
             <Lock className="size-4 text-[#57534E]" aria-hidden="true" />
-            Account security
+            {t('Account security')}
           </h2>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <Field
               id="current-password"
-              label="Current password"
+              label={t('Current password')}
               type="password"
               value={pwd.currentPassword}
               onChange={(v) => setPwd((p) => ({ ...p, currentPassword: v }))}
@@ -275,7 +282,7 @@ export default function ProfilePage() {
             />
             <Field
               id="new-password"
-              label="New password"
+              label={t('New password')}
               type="password"
               value={pwd.newPassword}
               onChange={(v) => setPwd((p) => ({ ...p, newPassword: v }))}
@@ -291,13 +298,13 @@ export default function ProfilePage() {
             onClick={() => void changePassword()}
             icon={pwdBusy ? <Loader2 className="size-3.5 animate-spin" /> : undefined}
           >
-            Update password
+            {t('Update password')}
           </Button>
         </section>
 
         {blocked.length > 0 && (
           <section className="rounded-[22px] border border-line bg-white p-5">
-            <h2 className="text-[14px] font-semibold">Blocked people</h2>
+            <h2 className="text-[14px] font-semibold">{t('Blocked people')}</h2>
             <ul className="mt-3 space-y-2">
               {blocked.map((person) => (
                 <li key={person.id} className="flex items-center justify-between gap-3 rounded-xl bg-[#FAF8F5] px-3 py-2">
@@ -315,7 +322,7 @@ export default function ProfilePage() {
                       toast.success('Unblocked');
                     }}
                   >
-                    Unblock
+                    {t('Unblock')}
                   </Button>
                 </li>
               ))}

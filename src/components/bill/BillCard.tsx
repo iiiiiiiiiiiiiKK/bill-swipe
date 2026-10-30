@@ -1,14 +1,16 @@
-﻿import { useMemo, useRef, useState, useCallback } from 'react';
+import { useMemo, useRef, useState, useCallback } from 'react';
 import { motion, useMotionValue, useTransform, animate, type PanInfo } from 'framer-motion';
 import { BadgeCheck, Clock3, MapPin, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { BillSummary } from '@shared/types';
 import { categoryOf } from '@shared/categories';
-import { percent, splitMoney } from '@shared/money';
+import { formatMoney, percent, splitMoney } from '@shared/money';
 import { Avatar } from '@/components/ui/Avatar';
 import { ProgressBar } from '@/components/ui/Primitives';
 import { BillImage } from './ReceiptArt';
 import { cn, daysUntil, haptic } from '@/lib/utils';
+import { useI18n } from '@/lib/i18n';
+import { useBillCopy } from '@/lib/demoContent';
 
 export type SwipeDirection = 'left' | 'right' | 'up';
 
@@ -23,7 +25,10 @@ interface BillCardProps {
 
 const SWIPE_THRESHOLD = 96;
 
-export function BillCard({ bill, onSwipe, onOpen, isTop, index, reducedMotion }: BillCardProps) {
+export function BillCard({ bill: rawBill, onSwipe, onOpen, isTop, index, reducedMotion }: BillCardProps) {
+  const { t, tp } = useI18n();
+  const localize = useBillCopy();
+  const bill = localize(rawBill);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotate = useTransform(x, [-260, 0, 260], [-14, 0, 14]);
@@ -141,12 +146,12 @@ export function BillCard({ bill, onSwipe, onOpen, isTop, index, reducedMotion }:
                 {bill.verificationStatus === 'verified' && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-white/92 px-2 py-1 text-[10.5px] font-semibold text-[#0F7A52] backdrop-blur">
                     <BadgeCheck className="size-3.5" aria-hidden="true" />
-                    Verified
+                    {t('Verified')}
                   </span>
                 )}
                 {bill.isDemo && (
                   <span className="rounded-full bg-black/55 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-white backdrop-blur">
-                    Demo
+                    {t('Demo')}
                   </span>
                 )}
               </div>
@@ -206,7 +211,7 @@ export function BillCard({ bill, onSwipe, onOpen, isTop, index, reducedMotion }:
                   {percent(bill.raisedAmount, bill.targetAmount)}% funded
                 </span>
                 <span className="text-muted">
-                  {remaining > 0 ? `${(remaining / 100).toFixed(remaining % 100 === 0 ? 0 : 2)} ${bill.currency} to go` : 'Goal reached'}
+                  {remaining > 0 ? t('{amount} to go', { amount: formatMoney(remaining, bill.currency) }) : t('Goal reached')}
                 </span>
               </div>
               <ProgressBar value={progress} tone={fullyFunded ? 'mint' : 'brand'} />
@@ -214,12 +219,12 @@ export function BillCard({ bill, onSwipe, onOpen, isTop, index, reducedMotion }:
               <div className="mt-3 flex items-center justify-between text-[12px] text-muted">
                 <span className="inline-flex items-center gap-1.5">
                   <Users className="size-3.5" aria-hidden="true" />
-                  {bill.helperCount} {bill.helperCount === 1 ? 'helper' : 'helpers'}
+                  {tp(bill.helperCount, '{n} helper', '{n} helpers')}
                 </span>
                 {due !== null && due >= 0 && due <= 14 ? (
                   <span className="inline-flex items-center gap-1.5 font-medium text-[#A96A00]">
                     <Clock3 className="size-3.5" aria-hidden="true" />
-                    {due === 0 ? 'Due today' : `${due}d left`}
+                    {due === 0 ? t('Due today') : t('{n}d left', { n: due })}
                   </span>
                 ) : (
                   <span className="truncate pl-3 text-right">{bill.owner.country}</span>
@@ -261,7 +266,10 @@ function Stamp({ tone, children }: { tone: 'help' | 'pass' | 'super'; children: 
   );
 }
 
-export function BillCardPreview({ bill }: { bill: BillSummary }) {
+export function BillCardPreview({ bill: rawBill }: { bill: BillSummary }) {
+  const { tp } = useI18n();
+  const localize = useBillCopy();
+  const bill = localize(rawBill);
   const cat = categoryOf(bill.category);
   return (
     <Link
@@ -294,7 +302,7 @@ export function BillCardPreview({ bill }: { bill: BillSummary }) {
           <ProgressBar value={percent(bill.raisedAmount, bill.targetAmount)} className="h-1" />
           <div className="mt-1.5 flex items-center justify-between text-[11.5px]">
             <span className="font-semibold">{percent(bill.raisedAmount, bill.targetAmount)}%</span>
-            <span className="text-muted">{bill.helperCount} helpers</span>
+            <span className="text-muted">{tp(bill.helperCount, '{n} helper', '{n} helpers')}</span>
           </div>
         </div>
       </div>

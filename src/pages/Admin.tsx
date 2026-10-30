@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useI18n } from '@/lib/i18n';
+import { useStatusLabel } from '@/lib/labels';
+import { useDemoTitle } from '@/lib/demoContent';
 import { Link, NavLink, Route, Routes, useNavigate } from 'react-router-dom';
 import {
   BadgeCheck,
@@ -33,8 +36,8 @@ import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { Pill, Skeleton } from '@/components/ui/Primitives';
 import { ReportDialog } from '@/components/safety/ReportDialog';
-import { formatMoney } from '@shared/money';
-import { cn, formatDate, timeAgo } from '@/lib/utils';
+
+import { cn } from '@/lib/utils';
 
 const TABS = [
   { to: '/admin', label: 'Overview', icon: LayoutDashboard, end: true },
@@ -46,6 +49,7 @@ const TABS = [
 ];
 
 export default function Admin() {
+  const { t } = useI18n();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -64,7 +68,7 @@ export default function Admin() {
     return (
       <div className="flex min-h-[50vh] items-center justify-center gap-2 text-[13px] text-muted">
         <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-        Checking access…
+        {t('Checking access…')}
       </div>
     );
   }
@@ -77,9 +81,9 @@ export default function Admin() {
         <div>
           <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink">
             <ShieldCheck className="size-3.5" aria-hidden="true" />
-            Admin
+            {t('Admin')}
           </p>
-          <h1 className="mt-1 text-[24px] font-semibold tracking-[-0.03em]">Operations dashboard</h1>
+          <h1 className="mt-1 text-[24px] font-semibold tracking-[-0.03em]">{t('Operations dashboard')}</h1>
         </div>
         <Link to="/discover" className="text-[12.5px] font-semibold text-muted hover:text-ink">
           ← Back to app
@@ -122,6 +126,7 @@ export default function Admin() {
 }
 
 function Overview() {
+  const { t, money, num } = useI18n();
   const [data, setData] = useState<AdminOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -136,14 +141,14 @@ function Overview() {
   if (!data) return <GridSkeleton count={8} />;
 
   const cards = [
-    { label: 'Users', value: data.users, icon: Users, tone: 'brand' as const },
-    { label: 'Bills total', value: data.bills, icon: ClipboardList, tone: 'neutral' as const },
-    { label: 'Awaiting review', value: data.pendingReview, icon: ShieldAlert, tone: 'amber' as const },
-    { label: 'Live bills', value: data.activeBills, icon: BadgeCheck, tone: 'mint' as const },
-    { label: 'Fully funded', value: data.fullyFunded, icon: CheckCircle2, tone: 'mint' as const },
-    { label: 'Succeeded volume', value: formatMoney(data.amountSucceeded), icon: CreditCard, tone: 'brand' as const },
-    { label: 'Open reports', value: data.openReports, icon: Flag, tone: 'coral' as const },
-    { label: 'Payment anomalies', value: data.paymentAnomalies, icon: ShieldAlert, tone: 'coral' as const },
+    { label: t('Users'), value: num(data.users), icon: Users, tone: 'brand' as const },
+    { label: t('Bills total'), value: num(data.bills), icon: ClipboardList, tone: 'neutral' as const },
+    { label: t('Awaiting review'), value: num(data.pendingReview), icon: ShieldAlert, tone: 'amber' as const },
+    { label: t('Live bills'), value: num(data.activeBills), icon: BadgeCheck, tone: 'mint' as const },
+    { label: t('Fully funded'), value: num(data.fullyFunded), icon: CheckCircle2, tone: 'mint' as const },
+    { label: t('Succeeded volume'), value: money(data.amountSucceeded), icon: CreditCard, tone: 'brand' as const },
+    { label: t('Open reports'), value: num(data.openReports), icon: Flag, tone: 'coral' as const },
+    { label: t('Payment anomalies'), value: num(data.paymentAnomalies), icon: ShieldAlert, tone: 'coral' as const },
   ];
 
   return (
@@ -181,6 +186,9 @@ function Overview() {
 }
 
 function BillsPanel() {
+  const { t, tp, money, timeAgo } = useI18n();
+  const statusLabel = useStatusLabel();
+  const demoTitle = useDemoTitle();
   const toast = useToast();
   const [bills, setBills] = useState<AdminBillRow[] | null>(null);
   const [status, setStatus] = useState('pending_review');
@@ -225,7 +233,7 @@ function BillsPanel() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search title, email or username"
+            placeholder={t('Search title, email or username')}
             className="h-9 w-full rounded-xl border border-line bg-white pl-8 pr-3 text-[12.5px] outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
           />
         </div>
@@ -233,7 +241,7 @@ function BillsPanel() {
           value={status}
           onChange={(e) => setStatus(e.target.value)}
           className="h-9 rounded-xl border border-line bg-white px-2.5 text-[12.5px] font-semibold outline-none"
-          aria-label="Filter by status"
+          aria-label={t('Filter by status')}
         >
           {['pending_review', 'active', 'fully_funded', 'rejected', 'suspended', 'closed', 'all'].map((s) => (
             <option key={s} value={s}>
@@ -242,7 +250,7 @@ function BillsPanel() {
           ))}
         </select>
         <Button size="sm" variant="pass" onClick={() => void load()} icon={<RefreshCw className="size-3.5" aria-hidden="true" />}>
-          Refresh
+          {t('Refresh')}
         </Button>
       </div>
 
@@ -256,17 +264,15 @@ function BillsPanel() {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-1.5">
                   <Link to={`/bills/${bill.id}`} className="truncate text-[13.5px] font-semibold hover:text-brand-ink">
-                    {bill.title}
+                    {demoTitle(bill.title)}
                   </Link>
-                  {bill.isDemo && <Pill tone="neutral">Demo</Pill>}
-                  <Pill tone={bill.status === 'pending_review' ? 'amber' : bill.status === 'active' ? 'brand' : 'neutral'}>
-                    {bill.status.replace('_', ' ')}
-                  </Pill>
-                  {bill.reportCount > 0 && <Pill tone="coral">{bill.reportCount} reports</Pill>}
+                  {bill.isDemo && <Pill tone="neutral">{t('Demo')}</Pill>}
+                  <Pill tone={statusLabel(bill.status).tone}>{statusLabel(bill.status).label}</Pill>
+                  {bill.reportCount > 0 && <Pill tone="coral">{tp(bill.reportCount, '{n} report', '{n} reports')}</Pill>}
                 </div>
                 <p className="mt-1 text-[11.5px] text-muted">
                   {bill.owner.displayName} · {bill.ownerEmail} · {timeAgo(bill.createdAt)} ·{' '}
-                  {formatMoney(bill.targetAmount, bill.currency)} · {bill.helperCount} helpers
+                  {money(bill.targetAmount, bill.currency)} · {tp(bill.helperCount, '{n} helper', '{n} helpers')}
                 </p>
                 {bill.riskFlags.length > 0 && (
                   <div className="mt-1.5 flex flex-wrap gap-1">
@@ -286,12 +292,12 @@ function BillsPanel() {
                     className="border border-line text-[11.5px]"
                     onClick={() => window.open(`/api/admin/receipts/${bill.id}`, '_blank', 'noopener')}
                   >
-                    Receipt
+                    {t('Receipt')}
                   </Button>
                 )}
                 <Button size="sm" variant="help" disabled={busy === bill.id} onClick={() => void review(bill.id, 'approve', 'Looks good.')}>
                   <CheckCircle2 className="size-3.5" aria-hidden="true" />
-                  Approve
+                  {t('Approve')}
                 </Button>
                 <Button
                   size="sm"
@@ -303,10 +309,10 @@ function BillsPanel() {
                   }}
                 >
                   <XCircle className="size-3.5" aria-hidden="true" />
-                  Reject
+                  {t('Reject')}
                 </Button>
                 <Button size="sm" variant="ghost" className="border border-line" disabled={busy === bill.id} onClick={() => void review(bill.id, 'suspend')}>
-                  Pause
+                  {t('Pause')}
                 </Button>
                 <Button size="sm" variant="ghost" className="border border-line" disabled={busy === bill.id} onClick={() => void review(bill.id, 'reopen')}>
                   <RotateCcw className="size-3.5" aria-hidden="true" />
@@ -316,12 +322,13 @@ function BillsPanel() {
           </li>
         ))}
       </ul>
-      {bills?.length === 0 && <p className="mt-4 rounded-2xl bg-white py-10 text-center text-[13px] text-muted ring-1 ring-line">No bills match this filter.</p>}
+      {bills?.length === 0 && <p className="mt-4 rounded-2xl bg-white py-10 text-center text-[13px] text-muted ring-1 ring-line">{t('No bills match this filter.')}</p>}
     </div>
   );
 }
 
 function UsersPanel({ adminId }: { adminId: string }) {
+  const { t, money, date: formatDate } = useI18n();
   const toast = useToast();
   const [users, setUsers] = useState<AdminUserRow[] | null>(null);
   const [query, setQuery] = useState('');
@@ -354,7 +361,7 @@ function UsersPanel({ adminId }: { adminId: string }) {
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by email, username or name"
+          placeholder={t('Search by email, username or name')}
           className="h-9 w-full rounded-xl border border-line bg-white pl-8 pr-3 text-[12.5px] outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
         />
       </div>
@@ -374,23 +381,23 @@ function UsersPanel({ adminId }: { adminId: string }) {
                 </Pill>
               </p>
               <p className="truncate text-[11.5px] text-muted">
-                {person.email} · {person.billsPosted} bills · {formatMoney(person.helpedAmount)} helped · joined{' '}
+                {person.email} · {person.billsPosted} bills · {money(person.helpedAmount)} helped · joined{' '}
                 {formatDate(person.createdAt)}
               </p>
             </div>
             {person.id !== adminId && (
               <div className="flex gap-1.5">
                 <Button size="sm" variant="ghost" className="border border-line text-[11.5px]" onClick={() => void setStatus(person.id, 'restricted')}>
-                  Restrict
+                  {t('Restrict')}
                 </Button>
                 {person.accountStatus === 'banned' ? (
                   <Button size="sm" variant="help" onClick={() => void setStatus(person.id, 'active')}>
-                    Restore
+                    {t('Restore')}
                   </Button>
                 ) : (
                   <Button size="sm" variant="danger" onClick={() => void setStatus(person.id, 'banned')}>
                     <Ban className="size-3.5" aria-hidden="true" />
-                    Ban
+                    {t('Ban')}
                   </Button>
                 )}
               </div>
@@ -398,12 +405,13 @@ function UsersPanel({ adminId }: { adminId: string }) {
           </li>
         ))}
       </ul>
-      {users?.length === 0 && <p className="mt-4 rounded-2xl bg-white py-10 text-center text-[13px] text-muted ring-1 ring-line">No users found.</p>}
+      {users?.length === 0 && <p className="mt-4 rounded-2xl bg-white py-10 text-center text-[13px] text-muted ring-1 ring-line">{t('No users found.')}</p>}
     </div>
   );
 }
 
 function PaymentsPanel() {
+  const { t, money, timeAgo } = useI18n();
   const toast = useToast();
   const [payments, setPayments] = useState<AdminPaymentRow[] | null>(null);
 
@@ -458,20 +466,21 @@ function PaymentsPanel() {
               {payment.payer} · {payment.provider} · {timeAgo(payment.createdAt)} · {payment.id}
             </p>
           </div>
-          <p className="money-tabular text-[13px] font-bold">{formatMoney(payment.amount)}</p>
+          <p className="money-tabular text-[13px] font-bold">{money(payment.amount)}</p>
           {payment.status === 'succeeded' && (
             <Button size="sm" variant="ghost" className="border border-line text-[11.5px]" onClick={() => void refund(payment.id)}>
-              Refund
+              {t('Refund')}
             </Button>
           )}
         </li>
       ))}
-      {payments.length === 0 && <p className="rounded-2xl bg-white py-10 text-center text-[13px] text-muted ring-1 ring-line">No payments yet.</p>}
+      {payments.length === 0 && <p className="rounded-2xl bg-white py-10 text-center text-[13px] text-muted ring-1 ring-line">{t('No payments yet.')}</p>}
     </ul>
   );
 }
 
 function ReportsPanel() {
+  const { t, timeAgo } = useI18n();
   const toast = useToast();
   const [reports, setReports] = useState<Report[] | null>(null);
   const [dialog, setDialog] = useState<Report | null>(null);
@@ -530,7 +539,7 @@ function ReportsPanel() {
             </div>
           </li>
         ))}
-        {reports.length === 0 && <p className="rounded-2xl bg-white py-10 text-center text-[13px] text-muted ring-1 ring-line">No reports. 🎉</p>}
+        {reports.length === 0 && <p className="rounded-2xl bg-white py-10 text-center text-[13px] text-muted ring-1 ring-line">{t('No reports. 🎉')}</p>}
       </ul>
       {dialog && (
         <ReportDialog open onClose={() => setDialog(null)} targetType="bill" targetId={dialog.targetId} targetLabel={dialog.targetLabel} />
@@ -540,6 +549,7 @@ function ReportsPanel() {
 }
 
 function AuditPanel() {
+  const { t, timeAgo } = useI18n();
   const [logs, setLogs] = useState<AuditLog[] | null>(null);
 
   useEffect(() => {
@@ -566,7 +576,7 @@ function AuditPanel() {
           </code>
         </li>
       ))}
-      {logs.length === 0 && <p className="rounded-2xl bg-white py-10 text-center text-[13px] text-muted ring-1 ring-line">No admin actions yet.</p>}
+      {logs.length === 0 && <p className="rounded-2xl bg-white py-10 text-center text-[13px] text-muted ring-1 ring-line">{t('No admin actions yet.')}</p>}
     </ul>
   );
 }

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useI18n } from '@/lib/i18n';
+import { localizeDemoBill } from '@/lib/demoContent';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowRight,
@@ -30,7 +32,7 @@ type Step = 'amount' | 'confirm' | 'processing' | 'success';
 const QUICK_AMOUNTS = [500, 1000, 2500, 5000];
 
 export function HelpSheet({
-  bill,
+  bill: rawBill,
   open,
   superHelp = false,
   onClose,
@@ -40,6 +42,8 @@ export function HelpSheet({
   superHelp?: boolean;
   onClose: () => void;
 }) {
+  const { t, lang } = useI18n();
+  const bill = rawBill ? localizeDemoBill(rawBill, lang) : rawBill;
   const { user } = useAuth();
   const toast = useToast();
   const [step, setStep] = useState<Step>('amount');
@@ -170,7 +174,7 @@ export function HelpSheet({
                 type="button"
                 onClick={onClose}
                 className="rounded-lg p-1.5 text-muted transition hover:bg-black/5 hover:text-ink"
-                aria-label="Close"
+                aria-label={t('Close')}
               >
                 <X className="size-4" aria-hidden="true" />
               </button>
@@ -192,7 +196,7 @@ export function HelpSheet({
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="money-tabular text-[15px] font-bold leading-none">{formatMoney(remaining)}</p>
-                      <p className="mt-1 text-[10.5px] text-muted">still needed</p>
+                      <p className="mt-1 text-[10.5px] text-muted">{t('still needed')}</p>
                     </div>
                   </div>
 
@@ -207,7 +211,7 @@ export function HelpSheet({
                   )}
 
                   <div className="mt-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">Quick amounts</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">{t('Quick amounts')}</p>
                     <div className="mt-2 grid grid-cols-4 gap-2">
                       {QUICK_AMOUNTS.map((value) => (
                         <button
@@ -232,7 +236,7 @@ export function HelpSheet({
 
                   <div className="mt-3">
                     <label htmlFor="custom-amount" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">
-                      Custom amount
+                      {t('Custom amount')}
                     </label>
                     <div className="relative mt-1.5">
                       <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[15px] font-semibold text-muted">$</span>
@@ -259,8 +263,8 @@ export function HelpSheet({
                       className="size-4 rounded border-[#CFC9C0] text-brand-ink focus:ring-brand"
                     />
                     <span className="min-w-0 flex-1">
-                      <span className="block text-[13px] font-semibold">Help anonymously</span>
-                      <span className="block text-[11.5px] text-muted">Your name stays hidden from the bill owner and feed.</span>
+                      <span className="block text-[13px] font-semibold">{t('Help anonymously')}</span>
+                      <span className="block text-[11.5px] text-muted">{t('Your name stays hidden from the bill owner and feed.')}</span>
                     </span>
                   </label>
 
@@ -272,7 +276,7 @@ export function HelpSheet({
 
                   <div className="mt-4 rounded-xl bg-[#FAF8F5] px-3 py-2.5">
                     <div className="flex items-center justify-between text-[12.5px]">
-                      <span className="text-muted">You pay</span>
+                      <span className="text-muted">{t('You pay')}</span>
                       <span className="money-tabular font-semibold">{formatMoney(total)}</span>
                     </div>
                   </div>
@@ -289,12 +293,12 @@ export function HelpSheet({
                   </Button>
                   {!user && (
                     <LinkButton to="/login" block size="md" variant="soft" className="mt-2">
-                      Sign in
+                      {t('Sign in')}
                     </LinkButton>
                   )}
                   <p className="mt-2.5 flex items-start gap-1.5 text-[11px] leading-relaxed text-[#736E66]">
                     <Info className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
-                    Nothing is charged yet. You will see the full breakdown on the next screen.
+                    {t('Nothing is charged yet. You will see the full breakdown on the next screen.')}
                   </p>
                 </>
               )}
@@ -302,7 +306,7 @@ export function HelpSheet({
               {(step === 'confirm' || step === 'processing') && (
                 <>
                   <div className="rounded-2xl border border-line p-3.5">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">You are helping</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">{t('You are helping')}</p>
                     <div className="mt-2 flex items-center gap-2.5">
                       <Avatar name={anonymous ? 'Anonymous helper' : user?.displayName ?? 'You'} seed={user?.avatarSeed} size={36} />
                       <div className="min-w-0">
@@ -314,17 +318,17 @@ export function HelpSheet({
 
                   <dl className="mt-3 space-y-2 rounded-2xl bg-[#FAF8F5] p-3.5 text-[13px]">
                     <div className="flex items-center justify-between">
-                      <dt className="text-[#5C5862]">Help amount</dt>
+                      <dt className="text-[#5C5862]">{t('Help amount')}</dt>
                       <dd className="money-tabular font-semibold">{formatMoney(receiptTotal?.amount ?? effectiveAmount)}</dd>
                     </div>
                     <div className="flex items-center justify-between">
-                      <dt className="text-[#5C5862]">Platform fee</dt>
+                      <dt className="text-[#5C5862]">{t('Platform fee')}</dt>
                       <dd className="money-tabular font-semibold">
                         {(receiptTotal?.fee ?? fee) === 0 ? 'Free' : formatMoney(receiptTotal?.fee ?? fee)}
                       </dd>
                     </div>
                     <div className="flex items-center justify-between border-t border-line pt-2">
-                      <dt className="font-semibold">Total</dt>
+                      <dt className="font-semibold">{t('Total')}</dt>
                       <dd className="money-tabular text-[17px] font-bold">{formatMoney(receiptTotal?.total ?? total)}</dd>
                     </div>
                   </dl>
@@ -332,7 +336,7 @@ export function HelpSheet({
                   <div className="mt-3 flex items-center gap-2.5 rounded-2xl border border-dashed border-[#E4B33D] bg-amber-soft px-3 py-2.5">
                     <ShieldCheck className="size-4 shrink-0 text-[#9A6600]" aria-hidden="true" />
                     <p className="text-[11.5px] leading-relaxed text-[#7A5200]">
-                      <strong className="font-semibold">Sandbox mode</strong> — this deployment simulates settlement. No
+                      <strong className="font-semibold">{t('Sandbox mode')}</strong> — this deployment simulates settlement. No
                       card is charged, no funds move.
                     </p>
                   </div>
@@ -340,8 +344,8 @@ export function HelpSheet({
                   <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-line px-3 py-2.5">
                     <CreditCard className="size-4 shrink-0 text-[#57534E]" aria-hidden="true" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-[12.5px] font-semibold">Sandbox wallet</p>
-                      <p className="text-[11px] text-muted">Simulated · settles server-side</p>
+                      <p className="text-[12.5px] font-semibold">{t('Sandbox wallet')}</p>
+                      <p className="text-[11px] text-muted">{t('Simulated · settles server-side')}</p>
                     </div>
                     <Check className="size-4 text-mint" aria-hidden="true" />
                   </div>
@@ -380,7 +384,7 @@ export function HelpSheet({
                     className="mt-2 w-full py-1.5 text-[12.5px] font-semibold text-muted transition hover:text-ink"
                     disabled={processing}
                   >
-                    Change amount
+                    {t('Change amount')}
                   </button>
                 </>
               )}
@@ -388,7 +392,7 @@ export function HelpSheet({
               {step === 'processing' && (
                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-t-[26px] bg-white/85 backdrop-blur-sm">
                   <Loader2 className="size-7 animate-spin text-brand-ink" aria-hidden="true" />
-                  <p className="text-[13px] font-semibold">Confirming with the server…</p>
+                  <p className="text-[13px] font-semibold">{t('Confirming with the server…')}</p>
                 </div>
               )}
 
@@ -402,7 +406,7 @@ export function HelpSheet({
                   >
                     <PartyPopper className="size-7 text-[#0F7A52]" aria-hidden="true" />
                   </motion.div>
-                  <h2 className="mt-4 text-[20px] font-semibold tracking-[-0.02em]">You just made someone&apos;s day. ❤️</h2>
+                  <h2 className="mt-4 text-[20px] font-semibold tracking-[-0.02em]">{t('You just made someone\'s day. ❤️')}</h2>
                   <p className="mx-auto mt-1.5 max-w-xs text-[13.5px] leading-relaxed text-muted">
                     {formatMoney(receiptTotal?.amount ?? effectiveAmount)} landed on &quot;{bill.title}&quot;. Both of you
                     will see it in notifications.
@@ -425,10 +429,10 @@ export function HelpSheet({
 
                   <div className="mt-4 flex gap-2">
                     <LinkButton to="/activity" size="md" className="flex-1" variant="soft">
-                      View activity
+                      {t('View activity')}
                     </LinkButton>
                     <Button size="md" className="flex-1" onClick={onClose}>
-                      Keep swiping
+                      {t('Keep swiping')}
                     </Button>
                   </div>
                   {payment && (
@@ -438,7 +442,7 @@ export function HelpSheet({
                     </p>
                   )}
                   <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5">
-                    <Pill tone="amber">Sandbox</Pill>
+                    <Pill tone="amber">{t('Sandbox')}</Pill>
                     <Pill tone="neutral">{anonymous ? 'Anonymous' : 'Named'}</Pill>
                   </div>
                 </div>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useI18n } from '@/lib/i18n';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, useReducedMotion } from 'framer-motion';
 import {
@@ -32,6 +33,7 @@ interface FeedState {
 }
 
 export default function Discover() {
+  const { t, tp } = useI18n();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
@@ -178,22 +180,22 @@ export default function Discover() {
       <section className="flex min-h-[calc(100dvh-8.5rem)] flex-1 flex-col lg:min-h-0">
         <div className="flex items-center justify-between gap-3 px-5 pt-3 lg:px-0 lg:pt-0">
           <div>
-            <h1 className="text-[19px] font-semibold tracking-[-0.02em] lg:text-[22px]">Discover</h1>
+            <h1 className="text-[19px] font-semibold tracking-[-0.02em] lg:text-[22px]">{t('Discover')}</h1>
             <p className="mt-0.5 text-[12px] text-muted">
-              {feed.bills.length > 0 ? `${feed.bills.length} bill${feed.bills.length === 1 ? '' : 's'} in your stack` : 'Fresh bills, reviewed by humans'}
+              {feed.bills.length > 0 ? tp(feed.bills.length, '{n} bill in your stack', '{n} bills in your stack') : t('Fresh bills, reviewed by humans')}
             </p>
           </div>
           <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={() => void load()}
-              aria-label="Refresh bills"
+              aria-label={t('Refresh bills')}
               className="inline-flex size-9 items-center justify-center rounded-xl border border-line bg-white text-[#57534E] transition hover:bg-[#FBFAF8]"
             >
               <RefreshCw className={cn('size-4', feed.loading && 'animate-spin')} aria-hidden="true" />
             </button>
             <Pill tone="neutral" className="hidden sm:inline-flex">
-              ← pass · → help
+              {t('← pass · → help')}
             </Pill>
           </div>
         </div>
@@ -222,17 +224,17 @@ export default function Discover() {
                   <span className="flex size-16 items-center justify-center rounded-3xl bg-brand-soft">
                     <Sparkles className="size-7 text-brand-ink" aria-hidden="true" />
                   </span>
-                  <h2 className="mt-4 text-[19px] font-semibold">That&apos;s the whole stack</h2>
+                  <h2 className="mt-4 text-[19px] font-semibold">{t('That\'s the whole stack')}</h2>
                   <p className="mt-1.5 max-w-xs text-[13.5px] leading-relaxed text-muted">
                     You have seen every bill available right now. New ones appear as they pass review — check back in a
                     little while.
                   </p>
                   <div className="mt-5 flex flex-wrap justify-center gap-2">
                     <Button onClick={() => void load()} icon={<RefreshCw className="size-4" aria-hidden="true" />}>
-                      Refresh
+                      {t('Refresh')}
                     </Button>
                     <LinkButton to="/bills/new" variant="pass">
-                      Post a bill
+                      {t('Post a bill')}
                     </LinkButton>
                   </div>
                   <p className="mt-4 text-[11.5px] text-[#736E66]">
@@ -246,10 +248,10 @@ export default function Discover() {
                   <span className="flex size-14 items-center justify-center rounded-2xl bg-coral-soft">
                     <X className="size-6 text-[#C02444]" aria-hidden="true" />
                   </span>
-                  <h2 className="mt-4 text-[18px] font-semibold">Could not load bills</h2>
+                  <h2 className="mt-4 text-[18px] font-semibold">{t('Could not load bills')}</h2>
                   <p className="mt-1.5 max-w-xs text-[13.5px] leading-relaxed text-muted">{feed.error}</p>
                   <Button className="mt-5" onClick={() => void load()} icon={<RefreshCw className="size-4" aria-hidden="true" />}>
-                    Try again
+                    {t('Try again')}
                   </Button>
                 </div>
               )}
@@ -258,7 +260,7 @@ export default function Discover() {
             {/* Action bar */}
             <div className="mt-5 flex items-center justify-center gap-3 lg:gap-4">
               <ActionButton
-                label="Undo"
+                label={t('Undo')}
                 onClick={() => void handleUndo()}
                 disabled={history.length === 0}
                 className="size-[52px] border border-line bg-white text-[#57534E] shadow-soft hover:bg-[#FBFAF8]"
@@ -266,7 +268,7 @@ export default function Discover() {
                 <Undo2 className="size-[19px]" aria-hidden="true" />
               </ActionButton>
               <ActionButton
-                label="Pass"
+                label={t('Pass')}
                 onClick={handlePass}
                 disabled={!top}
                 className="size-[62px] bg-white text-[#C02444] shadow-lift ring-1 ring-[#FFD8E0] hover:bg-[#FFF7F9]"
@@ -274,7 +276,7 @@ export default function Discover() {
                 <X className="size-6" aria-hidden="true" strokeWidth={2.6} />
               </ActionButton>
               <ActionButton
-                label="Super Help"
+                label={t('Super Help')}
                 onClick={handleSuper}
                 disabled={!top}
                 className="size-[52px] bg-brand-soft text-brand-ink shadow-soft hover:bg-[#E4DAFF]"
@@ -282,7 +284,7 @@ export default function Discover() {
                 <Zap className="size-[19px]" aria-hidden="true" strokeWidth={2.6} />
               </ActionButton>
               <ActionButton
-                label="Help"
+                label={t('Help')}
                 onClick={handleHelp}
                 disabled={!top}
                 className="size-[62px] bg-mint text-white shadow-[0_14px_28px_-14px_rgba(41,197,138,0.95)] hover:bg-[#22b47c]"
@@ -290,7 +292,7 @@ export default function Discover() {
                 <HeartHandshake className="size-6" aria-hidden="true" strokeWidth={2.4} />
               </ActionButton>
               <ActionButton
-                label="Open"
+                label={t('Open')}
                 onClick={() => top && navigate(`/bills/${top.id}`)}
                 disabled={!top}
                 className="size-[52px] border border-line bg-white text-[#57534E] shadow-soft hover:bg-[#FBFAF8]"
@@ -299,7 +301,7 @@ export default function Discover() {
               </ActionButton>
             </div>
             <p className="mt-2.5 text-center text-[11px] text-[#736E66]">
-              Swiping records intent only — you always confirm the amount and total before paying.
+              {t('Swiping records intent only — you always confirm the amount and total before paying.')}
             </p>
           </div>
         </div>
@@ -373,10 +375,11 @@ function CardSkeleton() {
 }
 
 function SidebarStats({ user }: { user: MeProfile | null }) {
+  const { t } = useI18n();
   return (
     <div className="card-shell p-4">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">Your impact</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">{t('Your impact')}</p>
         {user && <Avatar name={user.displayName} seed={user.avatarSeed} src={user.avatarUrl} size={24} />}
       </div>
       {user ? (
@@ -384,13 +387,13 @@ function SidebarStats({ user }: { user: MeProfile | null }) {
           <div className="mt-3 grid grid-cols-2 gap-2">
             <div className="rounded-xl bg-[#FAF8F5] p-2.5">
               <p className="money-tabular text-[17px] font-bold leading-none">{user.stats.helpedCount}</p>
-              <p className="mt-1 text-[10.5px] text-muted">bills helped</p>
+              <p className="mt-1 text-[10.5px] text-muted">{t('bills helped')}</p>
             </div>
             <div className="rounded-xl bg-[#FAF8F5] p-2.5">
               <p className="money-tabular text-[17px] font-bold leading-none">
                 {formatMoney(user.stats.helpedAmount)}
               </p>
-              <p className="mt-1 text-[10.5px] text-muted">given</p>
+              <p className="mt-1 text-[10.5px] text-muted">{t('given')}</p>
             </div>
           </div>
           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -402,14 +405,14 @@ function SidebarStats({ user }: { user: MeProfile | null }) {
                   {a.label}
                 </Pill>
               ))}
-            {user.achievements.every((a) => !a.earned) && <p className="text-[11.5px] text-muted">Your first badge is one swipe away.</p>}
+            {user.achievements.every((a) => !a.earned) && <p className="text-[11.5px] text-muted">{t('Your first badge is one swipe away.')}</p>}
           </div>
         </>
       ) : (
         <div className="mt-3">
-          <p className="text-[13px] leading-relaxed text-muted">Sign in to track your help and see your badges.</p>
+          <p className="text-[13px] leading-relaxed text-muted">{t('Sign in to track your help and see your badges.')}</p>
           <LinkButton to="/login" size="sm" className="mt-3" block>
-            Sign in
+            {t('Sign in')}
           </LinkButton>
         </div>
       )}
@@ -418,36 +421,37 @@ function SidebarStats({ user }: { user: MeProfile | null }) {
 }
 
 function SidebarHint() {
+  const { t } = useI18n();
   return (
     <div className="rounded-2xl border border-line bg-white/70 p-4">
       <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">
         <HandHeart className="size-3.5" aria-hidden="true" />
-        Keyboard shortcuts
+        {t('Keyboard shortcuts')}
       </p>
       <ul className="mt-2.5 space-y-1.5 text-[12px] text-[#5C5862]">
         <li className="flex items-center justify-between">
-          <span>Pass</span>
+          <span>{t('Pass')}</span>
           <kbd className="rounded border border-line bg-white px-1.5 py-0.5 text-[10.5px]">←</kbd>
         </li>
         <li className="flex items-center justify-between">
-          <span>Help</span>
+          <span>{t('Help')}</span>
           <kbd className="rounded border border-line bg-white px-1.5 py-0.5 text-[10.5px]">→</kbd>
         </li>
         <li className="flex items-center justify-between">
-          <span>Super Help</span>
+          <span>{t('Super Help')}</span>
           <kbd className="rounded border border-line bg-white px-1.5 py-0.5 text-[10.5px]">↑</kbd>
         </li>
         <li className="flex items-center justify-between">
-          <span>Open bill</span>
+          <span>{t('Open bill')}</span>
           <kbd className="rounded border border-line bg-white px-1.5 py-0.5 text-[10.5px]">↵</kbd>
         </li>
         <li className="flex items-center justify-between">
-          <span>Undo</span>
+          <span>{t('Undo')}</span>
           <kbd className="rounded border border-line bg-white px-1.5 py-0.5 text-[10.5px]">Z</kbd>
         </li>
       </ul>
       <p className="mt-3 border-t border-line pt-2.5 text-[11px] leading-relaxed text-[#736E66]">
-        Recently passed? Undo restores the last card and removes the swipe record.
+        {t('Recently passed? Undo restores the last card and removes the swipe record.')}
       </p>
     </div>
   );

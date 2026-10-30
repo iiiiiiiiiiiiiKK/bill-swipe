@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useI18n } from '@/lib/i18n';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, Info, TriangleAlert, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -29,6 +30,7 @@ const ICONS: Record<ToastKind, ReactNode> = {
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
+  const { t } = useI18n();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
@@ -101,7 +103,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <button
                 type="button"
                 onClick={() => dismiss(toast.id)}
-                aria-label="Dismiss notification"
+                aria-label={t('Dismiss notification')}
                 className="-mr-1 -mt-1 rounded-lg p-1.5 text-muted transition hover:bg-black/5 hover:text-ink"
               >
                 <X className="size-4" aria-hidden="true" />

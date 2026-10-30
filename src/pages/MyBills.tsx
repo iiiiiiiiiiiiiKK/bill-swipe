@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useI18n } from '@/lib/i18n';
+import { useStatusLabel } from '@/lib/labels';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
@@ -22,8 +24,8 @@ import { PageHeader } from '@/components/layout/AppShell';
 import { EmptyState, Pill, ProgressBar, Skeleton } from '@/components/ui/Primitives';
 import { ReceiptArt } from '@/components/bill/ReceiptArt';
 import { categoryOf } from '@shared/categories';
-import { formatMoney, percent } from '@shared/money';
-import { cn, daysUntil, formatDate, timeAgo } from '@/lib/utils';
+import { percent } from '@shared/money';
+import { cn, daysUntil } from '@/lib/utils';
 
 const FILTERS = [
   { id: 'all', label: 'All' },
@@ -35,6 +37,7 @@ const FILTERS = [
 ] as const;
 
 export default function MyBills() {
+  const { t, tp, money, date: formatDate, timeAgo } = useI18n();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
@@ -106,21 +109,21 @@ export default function MyBills() {
   return (
     <div>
       <PageHeader
-        title="My bills"
+        title={t('My bills')}
         description="Everything you have posted, from review to fully funded."
         action={
           <LinkButton to="/bills/new" icon={<Plus className="size-4" aria-hidden="true" />}>
-            Post a bill
+            {t('Post a bill')}
           </LinkButton>
         }
       >
         <div className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-          <Stat label="Bills posted" value={String(totals.count)} icon={<FileText className="size-4" aria-hidden="true" />} />
-          <Stat label="Live now" value={String(totals.live)} icon={<Clock3 className="size-4" aria-hidden="true" />} />
-          <Stat label="Fully funded" value={String(totals.funded)} icon={<BadgeCheck className="size-4" aria-hidden="true" />} />
+          <Stat label={t('Bills posted')} value={String(totals.count)} icon={<FileText className="size-4" aria-hidden="true" />} />
+          <Stat label={t('Live now')} value={String(totals.live)} icon={<Clock3 className="size-4" aria-hidden="true" />} />
+          <Stat label={t('Fully funded')} value={String(totals.funded)} icon={<BadgeCheck className="size-4" aria-hidden="true" />} />
           <Stat
-            label="Raised total"
-            value={formatMoney(totals.raised)}
+            label={t('Raised total')}
+            value={money(totals.raised)}
             icon={<Wallet className="size-4" aria-hidden="true" />}
           />
         </div>
@@ -153,7 +156,7 @@ export default function MyBills() {
           <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl bg-coral-soft px-4 py-3">
             <p className="text-[13px] font-medium text-[#C02444]">{error}</p>
             <Button size="sm" variant="pass" onClick={() => location.reload()} icon={<RefreshCw className="size-3.5" aria-hidden="true" />}>
-              Retry
+              {t('Retry')}
             </Button>
           </div>
         )}
@@ -170,7 +173,7 @@ export default function MyBills() {
               }
               action={
                 <LinkButton to="/bills/new" icon={<Plus className="size-4" aria-hidden="true" />}>
-                  Post a bill
+                  {t('Post a bill')}
                 </LinkButton>
               }
             />
@@ -206,8 +209,8 @@ export default function MyBills() {
                     <div className="mt-2.5">
                       <div className="flex items-baseline justify-between text-[11.5px]">
                         <span className="font-semibold">
-                          {formatMoney(bill.raisedAmount, bill.currency)}
-                          <span className="font-normal text-muted"> of {formatMoney(bill.targetAmount, bill.currency)}</span>
+                          {money(bill.raisedAmount, bill.currency)}
+                          <span className="font-normal text-muted"> of {money(bill.targetAmount, bill.currency)}</span>
                         </span>
                         <span className="text-muted">{percent(bill.raisedAmount, bill.targetAmount)}%</span>
                       </div>
@@ -216,7 +219,7 @@ export default function MyBills() {
                     <div className="mt-2.5 flex items-center justify-between text-[11px] text-muted">
                       <span className="inline-flex items-center gap-1">
                         <Users className="size-3" aria-hidden="true" />
-                        {bill.helperCount} helpers
+                        {tp(bill.helperCount, '{n} helper', '{n} helpers')}
                       </span>
                       <span>
                         {due !== null && due >= 0 ? `Due in ${due}d` : formatDate(bill.dueDate)}
@@ -224,7 +227,7 @@ export default function MyBills() {
                     </div>
                     <div className="mt-3 flex gap-1.5 border-t border-line pt-2.5">
                       <LinkButton to={`/bills/${bill.id}`} size="sm" variant="ghost" className="flex-1 border border-line text-[12px]">
-                        View
+                        {t('View')}
                       </LinkButton>
                       {!locked && bill.status !== 'closed' ? (
                         <LinkButton
@@ -234,7 +237,7 @@ export default function MyBills() {
                           className="flex-1 border border-line text-[12px]"
                           icon={<Pencil className="size-3" aria-hidden="true" />}
                         >
-                          Edit
+                          {t('Edit')}
                         </LinkButton>
                       ) : (
                         <Button
@@ -245,7 +248,7 @@ export default function MyBills() {
                           onClick={() => void closeBill(bill.id)}
                           icon={busyId === bill.id ? <Loader2 className="size-3 animate-spin" /> : <X className="size-3" aria-hidden="true" />}
                         >
-                          Close
+                          {t('Close')}
                         </Button>
                       )}
                     </div>
@@ -275,17 +278,8 @@ function Stat({ label, value, icon }: { label: string; value: string; icon: Reac
 }
 
 function StatusPill({ status }: { status: string }) {
-  const map: Record<string, { label: string; tone: 'brand' | 'mint' | 'coral' | 'amber' | 'neutral' }> = {
-    active: { label: 'Live', tone: 'brand' },
-    fully_funded: { label: 'Funded', tone: 'mint' },
-    pending_review: { label: 'In review', tone: 'amber' },
-    rejected: { label: 'Changes', tone: 'coral' },
-    closed: { label: 'Closed', tone: 'neutral' },
-    suspended: { label: 'Paused', tone: 'coral' },
-    approved: { label: 'Approved', tone: 'mint' },
-    draft: { label: 'Draft', tone: 'neutral' },
-  };
-  const item = map[status] ?? { label: status, tone: 'neutral' as const };
+  const statusLabel = useStatusLabel();
+  const item = statusLabel(status);
   return <Pill tone={item.tone}>{item.label}</Pill>;
 }
 

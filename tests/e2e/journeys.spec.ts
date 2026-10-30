@@ -60,6 +60,42 @@ test.describe('public pages', () => {
   });
 });
 
+test.describe('language switcher', () => {
+  test('switches the whole interface to Chinese and back', async ({ page }) => {
+    // Pin the starting language: the app defaults to the browser locale, and the
+    // iPhone profile reports zh-CN.
+    await page.goto('/');
+    await page.evaluate(() => window.localStorage.setItem('billswipe.lang', 'en'));
+    await page.reload();
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+
+    // The control's accessible name is localised, so target it by its stable
+    // data attribute instead of by translated text.
+    const switcher = page.locator('[data-lang-switcher="zh"]:visible');
+    await expect(switcher.first()).toBeVisible();
+    await switcher.first().click();
+
+    // Navigation, hero and footer all flip.
+    await expect(page.getByRole('link', { name: '发现' }).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('一次轻滑');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
+
+    // The choice survives a reload (persisted, not just in-memory).
+    await page.reload();
+    await expect(page.getByRole('link', { name: '发现' }).first()).toBeVisible();
+
+    // Discover still works in Chinese and the payment copy is translated.
+    await page.goto('/discover');
+    await expect(page.getByRole('button', { name: '帮助', exact: true })).toBeVisible({ timeout: 30_000 });
+
+    // Switch back to English.
+    const back = page.locator('[data-lang-switcher="en"]:visible');
+    await back.first().click();
+    await expect(page.getByRole('link', { name: 'Discover' }).first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  });
+});
+
 test.describe('helping someone', () => {
   test('pass, help, confirm and see the success state', async ({ page }) => {
     await register(page, 'help');

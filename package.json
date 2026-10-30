@@ -16,7 +16,8 @@
     "smoke": "node scripts/smoke.mjs",
     "audit:ui": "node scripts/audit-ui.mjs",
     "domain:attach": "node scripts/attach-domain.mjs",
-    "shots": "node scripts/screenshots.mjs https://billswipe.852367856.dpdns.org docs/screenshots"
+    "shots": "node scripts/screenshots.mjs https://billswipe.852367856.dpdns.org docs/screenshots",
+    "audit:i18n": "node scripts/audit-i18n.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

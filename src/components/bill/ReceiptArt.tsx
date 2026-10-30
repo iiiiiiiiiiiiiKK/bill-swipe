@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 import { categoryOf } from '@shared/categories';
 import { formatMoney } from '@shared/money';
@@ -26,9 +27,10 @@ export function ReceiptArt({
   className?: string;
   compact?: boolean;
 }) {
+  const { t, lang } = useI18n();
   const art = useMemo(() => buildArt(seed, category), [seed, category]);
   const cat = categoryOf(category);
-  const label = merchant ?? art.merchant;
+  const label = merchant ?? t(art.merchant);
 
   return (
     <div
@@ -53,24 +55,24 @@ export function ReceiptArt({
             <p className="truncate text-[9px] font-bold uppercase tracking-[0.14em]" style={{ color: cat.ink }}>
               {label}
             </p>
-            <p className="mt-0.5 text-[7px] uppercase tracking-[0.1em] text-[#736E66]">{art.docType}</p>
+            <p className="mt-0.5 text-[7px] uppercase tracking-[0.1em] text-[#736E66]">{t(art.docType)}</p>
           </div>
           <span className="rounded-full px-1.5 py-0.5 text-[6.5px] font-bold uppercase tracking-wider" style={{ background: cat.tint, color: cat.ink }}>
-            {cat.short}
+            {t(cat.short)}
           </span>
         </div>
 
         <div className="space-y-1 py-2">
           {art.lines.slice(0, compact ? 2 : 4).map((line, i) => (
             <div key={i} className="flex items-baseline justify-between gap-2">
-              <span className="truncate text-[7px] text-[#8B857C]">{line.label}</span>
+              <span className="truncate text-[7px] text-[#8B857C]">{t(line.label)}</span>
               <span className="shrink-0 text-[7.5px] font-semibold tabular-nums text-[#4A453F]">{line.value}</span>
             </div>
           ))}
         </div>
 
         <div className="flex items-baseline justify-between border-t border-[#EDEAE4] pt-2">
-          <span className="text-[7px] font-semibold uppercase tracking-[0.1em] text-[#8B857C]">Total due</span>
+          <span className="text-[7px] font-semibold uppercase tracking-[0.1em] text-[#8B857C]">{t('Total due')}</span>
           <span className="text-[15px] font-bold tabular-nums leading-none text-[#1B1917]">
             {formatMoney(amount, currency)}
           </span>
@@ -82,7 +84,7 @@ export function ReceiptArt({
               <span key={i} className="block h-3 bg-[#2B2724]" style={{ width: w, opacity: 0.82 }} />
             ))}
           </div>
-          <span className="text-[6px] uppercase tracking-[0.12em] text-[#B3ADA5]">{art.ref}</span>
+          <span className="text-[6px] uppercase tracking-[0.12em] text-[#B3ADA5]">{lang === 'zh' ? '编号' : 'REF'} {art.ref}</span>
         </div>
       </div>
 

@@ -7,6 +7,7 @@ import { chromium } from 'playwright';
  * Usage: node scripts/audit-ui.mjs https://your-deployment
  */
 const base = process.argv[2] ?? 'https://billswipe.852367856.dpdns.org';
+const lang = process.argv[3] ?? 'en';
 
 const VIEWPORTS = [
   { name: 'iPhone SE 320', width: 320, height: 568, mobile: true },
@@ -41,7 +42,9 @@ for (const viewport of VIEWPORTS) {
     hasTouch: viewport.mobile,
   });
   const page = await context.newPage();
-  console.log(`\n== ${viewport.name} (${viewport.width}x${viewport.height}) ==`);
+  await page.goto(base, { waitUntil: 'domcontentloaded' });
+  await page.evaluate((code) => window.localStorage.setItem('billswipe.lang', code), lang);
+  console.log(`\n== ${viewport.name} (${viewport.width}x${viewport.height}) [${lang}] ==`);
 
   for (const path of PAGES) {
     await page.goto(`${base}${path}`, { waitUntil: 'networkidle', timeout: 45000 });

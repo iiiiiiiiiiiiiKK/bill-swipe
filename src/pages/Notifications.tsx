@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useI18n } from '@/lib/i18n';
 import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCheck, Heart, Inbox, Loader2 } from 'lucide-react';
 import type { NotificationItem } from '@shared/types';
@@ -8,9 +9,10 @@ import { useToast } from '@/components/ui/Toast';
 import { PageHeader } from '@/components/layout/AppShell';
 import { Button, LinkButton } from '@/components/ui/Button';
 import { EmptyState, Skeleton } from '@/components/ui/Primitives';
-import { cn, timeAgo } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 export default function Notifications() {
+  const { t, timeAgo } = useI18n();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
@@ -61,12 +63,12 @@ export default function Notifications() {
   return (
     <div className="mx-auto max-w-[720px]">
       <PageHeader
-        title="Notifications"
-        description={unread > 0 ? `${unread} unread` : 'You are all caught up.'}
+        title={t('Notifications')}
+        description={unread > 0 ? t('{n} unread', { n: unread }) : t('You are all caught up.')}
         action={
           unread > 0 ? (
             <Button size="sm" variant="pass" onClick={() => void markAll()} disabled={busy} icon={<CheckCheck className="size-3.5" aria-hidden="true" />}>
-              Mark all read
+              {t('Mark all read')}
             </Button>
           ) : undefined
         }
@@ -77,9 +79,9 @@ export default function Notifications() {
           <div className="card-shell">
             <EmptyState
               icon={<Bell className="size-6" aria-hidden="true" />}
-              title="Nothing yet"
+              title={t('Nothing yet')}
               description="Payment confirmations, bill approvals and updates from bills you helped will land here."
-              action={<LinkButton to="/discover">Find a bill to help</LinkButton>}
+              action={<LinkButton to="/discover">{t('Find a bill to help')}</LinkButton>}
             />
           </div>
         ) : (
@@ -108,7 +110,7 @@ export default function Notifications() {
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-1.5">
                       <span className="truncate text-[13px] font-semibold">{item.title}</span>
-                      {!item.isRead && <span className="size-1.5 shrink-0 rounded-full bg-coral" aria-label="Unread" />}
+                      {!item.isRead && <span className="size-1.5 shrink-0 rounded-full bg-coral" aria-label={t('Unread')} />}
                     </span>
                     <span className="mt-0.5 block text-[12px] leading-relaxed text-muted">{item.body}</span>
                     <span className="mt-0.5 block text-[10.5px] text-[#7C776F]">{timeAgo(item.createdAt)}</span>

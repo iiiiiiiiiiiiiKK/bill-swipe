@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useI18n } from '@/lib/i18n';
 import { motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowRight,
@@ -16,6 +17,7 @@ import {
 import type { BillSummary, CommunityPost, CommunityStats } from '@shared/types';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { usePostCopy } from '@/lib/communityCopy';
 import { Button, LinkButton } from '@/components/ui/Button';
 import { Avatar } from '@/components/ui/Avatar';
 import { Logo } from '@/components/brand/Logo';
@@ -24,7 +26,6 @@ import { ReceiptArt } from '@/components/bill/ReceiptArt';
 import { ProgressBar, Pill } from '@/components/ui/Primitives';
 import { formatMoney } from '@shared/money';
 import { categoryOf } from '@shared/categories';
-import { timeAgo } from '@/lib/utils';
 
 export default function Landing() {
   const { user } = useAuth();
@@ -64,6 +65,7 @@ export default function Landing() {
 }
 
 function Hero({ user, reduce }: { user: { displayName: string } | null; reduce: boolean }) {
+  const { t } = useI18n();
   const stack = [
     {
       category: 'groceries',
@@ -72,7 +74,7 @@ function Hero({ user, reduce }: { user: { displayName: string } | null; reduce: 
       name: 'Maria R.',
       progress: 62,
       tilt: -9,
-      x: '-16%',
+      x: '-10%',
       y: '8%',
       z: 1,
       scale: 0.86,
@@ -84,7 +86,7 @@ function Hero({ user, reduce }: { user: { displayName: string } | null; reduce: 
       name: 'James K.',
       progress: 78,
       tilt: 5,
-      x: '16%',
+      x: '10%',
       y: '4%',
       z: 2,
       scale: 0.9,
@@ -125,7 +127,7 @@ function Hero({ user, reduce }: { user: { displayName: string } | null; reduce: 
             <span className="flex size-5 items-center justify-center rounded-full bg-brand-soft">
               <Sparkles className="size-3 text-brand-ink" aria-hidden="true" />
             </span>
-            Swipe to discover · help only when you choose
+            {t('Swipe to discover · help only when you choose')}
           </motion.div>
 
           <motion.h1
@@ -134,11 +136,11 @@ function Hero({ user, reduce }: { user: { displayName: string } | null; reduce: 
             transition={{ duration: 0.55, delay: 0.05 }}
             className="mt-5 text-[40px] font-semibold leading-[1.03] tracking-[-0.045em] sm:text-[56px] lg:text-[62px]"
           >
-            A little swipe.
+            {t('A little swipe.')}
             <br />
             <span className="relative inline-block">
               <span className="relative z-10 bg-gradient-to-r from-brand via-[#8C63FF] to-coral bg-clip-text text-transparent">
-                A big difference.
+                {t('A big difference.')}
               </span>
               <svg
                 aria-hidden="true"
@@ -157,8 +159,7 @@ function Hero({ user, reduce }: { user: { displayName: string } | null; reduce: 
             transition={{ duration: 0.5, delay: 0.12 }}
             className="mt-5 max-w-lg text-[15.5px] leading-relaxed text-[#5C5862] sm:text-base"
           >
-            Somewhere out there, someone needs a little help right now. Browse real bills, swipe past what you
-            can&apos;t take on, and step in where you can. You might be the person who makes their day.
+            {t("Somewhere out there, someone needs a little help right now. Browse real bills, swipe past what you can't take on, and step in where you can. You might be the person who makes their day.")}
           </motion.p>
 
           <motion.div
@@ -168,10 +169,10 @@ function Hero({ user, reduce }: { user: { displayName: string } | null; reduce: 
             className="mt-7 flex flex-wrap items-center gap-3"
           >
             <LinkButton to="/discover" size="xl" trailing={<ArrowRight className="size-[18px]" aria-hidden="true" />}>
-              Start swiping
+              {t('Start swiping')}
             </LinkButton>
             <LinkButton to={user ? '/bills/new' : '/register'} size="xl" variant="pass">
-              Post your bill
+              {t('Post your bill')}
             </LinkButton>
           </motion.div>
 
@@ -183,15 +184,15 @@ function Hero({ user, reduce }: { user: { displayName: string } | null; reduce: 
           >
             <span className="inline-flex items-center gap-1.5">
               <BadgeCheck className="size-4 text-mint" aria-hidden="true" />
-              Every bill human-reviewed
+              {t('Every bill human-reviewed')}
             </span>
             <span className="inline-flex items-center gap-1.5">
               <Lock className="size-4 text-brand-ink" aria-hidden="true" />
-              Receipts stay private
+              {t('Receipts stay private')}
             </span>
             <span className="inline-flex items-center gap-1.5">
               <HeartHandshake className="size-4 text-[#C02444]" aria-hidden="true" />
-              Swiping never charges you
+              {t('Swiping never charges you')}
             </span>
           </motion.div>
         </div>
@@ -202,11 +203,11 @@ function Hero({ user, reduce }: { user: { displayName: string } | null; reduce: 
               const cat = categoryOf(card.category);
               return (
                 <motion.div
-                  key={card.title}
+                  key={t(card.title)}
                   initial={reduce ? false : { opacity: 0, y: 40, scale: 0.92 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ duration: 0.65, delay: 0.15 + i * 0.1, type: 'spring', stiffness: 90, damping: 16 }}
-                  className="absolute inset-x-6 inset-y-2"
+                  className="absolute inset-x-7 inset-y-2"
                   style={{ zIndex: card.z }}
                 >
                   <div
@@ -233,9 +234,9 @@ function Hero({ user, reduce }: { user: { displayName: string } | null; reduce: 
                       <div className="p-4">
                         <div className="flex items-center gap-2">
                           <Avatar name={card.name} size={26} />
-                          <span className="text-[12.5px] font-semibold">{card.name}</span>
+                          <span className="text-[12.5px] font-semibold">{t(card.name)}</span>
                         </div>
-                        <p className="mt-2 line-clamp-2 text-[13px] font-semibold leading-snug">{card.title}</p>
+                        <p className="mt-2 line-clamp-2 text-[13px] font-semibold leading-snug">{t(card.title)}</p>
                         <div className="mt-3 flex items-end justify-between">
                           <span className="money-tabular text-[22px] font-bold leading-none tracking-[-0.03em]">
                             {formatMoney(card.amount)}
@@ -261,8 +262,8 @@ function Hero({ user, reduce }: { user: { displayName: string } | null; reduce: 
               <Heart className="size-4 text-[#C02444]" aria-hidden="true" />
             </span>
             <div>
-              <p className="text-[12.5px] font-semibold leading-tight">Swipe right to help</p>
-              <p className="text-[11px] text-muted">Swipe left to pass. No charge, ever.</p>
+              <p className="text-[12.5px] font-semibold leading-tight">{t('Swipe right to help')}</p>
+              <p className="text-[11px] text-muted">{t('Swipe left to pass. No charge, ever.')}</p>
             </div>
           </motion.div>
         </div>
@@ -272,6 +273,7 @@ function Hero({ user, reduce }: { user: { displayName: string } | null; reduce: 
 }
 
 function CommunityImpact({ stats }: { stats: CommunityStats | null }) {
+  const { t } = useI18n();
   const items = [
     { label: 'Bills helped', value: stats ? stats.billsHelped.toLocaleString() : '—', icon: Heart },
     { label: 'Given in help', value: stats ? formatMoney(stats.amountGiven, stats.currency) : '—', icon: Wallet },
@@ -289,15 +291,14 @@ function CommunityImpact({ stats }: { stats: CommunityStats | null }) {
               </span>
               <div className="min-w-0">
                 <p className="money-tabular truncate text-[19px] font-bold leading-none tracking-[-0.02em]">{item.value}</p>
-                <p className="mt-1 truncate text-[11.5px] text-muted">{item.label}</p>
+                <p className="mt-1 truncate text-[11.5px] text-muted">{t(item.label)}</p>
               </div>
             </div>
           ))}
         </div>
         {stats?.demoIncluded && (
           <p className="mt-4 text-[11px] text-muted">
-            Includes clearly-labelled demo data seeded for this preview build — never presented as real platform
-            performance.
+            {t('Includes clearly-labelled demo data seeded for this preview build — never presented as real platform performance.')}
           </p>
         )}
       </div>
@@ -306,6 +307,7 @@ function CommunityImpact({ stats }: { stats: CommunityStats | null }) {
 }
 
 function HowItWorks() {
+  const { t } = useI18n();
   const steps = [
     {
       title: 'Swipe through bills',
@@ -329,9 +331,9 @@ function HowItWorks() {
   return (
     <section className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 lg:py-20" id="how-it-works">
       <div className="max-w-2xl">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink">How it works</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink">{t('How it works')}</p>
         <h2 className="mt-2 text-[30px] font-semibold leading-tight tracking-[-0.035em] sm:text-[38px]">
-          Three taps from scrolling to someone&apos;s good day.
+          {t('Three taps from scrolling to someone\'s good day.')}
         </h2>
       </div>
       <div className="mt-9 grid gap-4 sm:grid-cols-3">
@@ -358,8 +360,8 @@ function HowItWorks() {
             >
               <step.icon className="size-5" aria-hidden="true" />
             </span>
-            <h3 className="mt-4 text-[16px] font-semibold">{step.title}</h3>
-            <p className="mt-1.5 text-[13.5px] leading-relaxed text-[#5C5862]">{step.body}</p>
+            <h3 className="mt-4 text-[16px] font-semibold">{t(step.title)}</h3>
+            <p className="mt-1.5 text-[13.5px] leading-relaxed text-[#5C5862]">{t(step.body)}</p>
           </motion.div>
         ))}
       </div>
@@ -368,19 +370,20 @@ function HowItWorks() {
 }
 
 function FeaturedBills({ bills }: { bills: BillSummary[] }) {
+  const { t } = useI18n();
   if (bills.length === 0) return null;
   return (
     <section className="border-y border-line bg-white/55">
       <div className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 lg:py-16">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink">Live now</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink">{t('Live now')}</p>
             <h2 className="mt-2 text-[26px] font-semibold leading-tight tracking-[-0.03em] sm:text-[32px]">
-              Bills waiting for a little kindness
+              {t('Bills waiting for a little kindness')}
             </h2>
           </div>
           <LinkButton to="/discover" variant="ghost" size="sm" trailing={<ArrowRight className="size-4" aria-hidden="true" />}>
-            See all
+            {t('See all')}
           </LinkButton>
         </div>
         <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -394,6 +397,8 @@ function FeaturedBills({ bills }: { bills: BillSummary[] }) {
 }
 
 function RecentKindness({ posts }: { posts: CommunityPost[] }) {
+  const { t, timeAgo } = useI18n();
+  const postCopy = usePostCopy();
   const fallback = useMemo(
     () => [
       { id: 'f1', headline: 'Someone helped Maria R. with groceries', detail: 'A $25 top-up arrived four hours after she posted.', when: '2h ago' },
@@ -407,16 +412,15 @@ function RecentKindness({ posts }: { posts: CommunityPost[] }) {
     <section className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 lg:py-20">
       <div className="grid gap-10 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)] lg:gap-14">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#C02444]">Recent acts of kindness</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#C02444]">{t('Recent acts of kindness')}</p>
           <h2 className="mt-2 text-[30px] font-semibold leading-tight tracking-[-0.035em] sm:text-[36px]">
-            Good things happen here, quietly.
+            {t('Good things happen here, quietly.')}
           </h2>
           <p className="mt-3 max-w-sm text-[14px] leading-relaxed text-muted">
-            Anonymous by default if you want. Every entry below is generated from an actual help record — no stock
-            testimonials, no invented numbers.
+            {t('Anonymous by default if you want. Every entry below is generated from an actual help record — no stock testimonials, no invented numbers.')}
           </p>
           <LinkButton to="/community" variant="soft" size="md" className="mt-5" trailing={<ArrowRight className="size-4" aria-hidden="true" />}>
-            Open the community
+            {t('Open the community')}
           </LinkButton>
         </div>
         <ul className="space-y-3">
@@ -434,10 +438,10 @@ function RecentKindness({ posts }: { posts: CommunityPost[] }) {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-[14px] font-semibold leading-snug">
-                  {'headline' in item ? item.headline : ''}
+                  {'headline' in item ? postCopy.headline(item as CommunityPost) : ''}
                 </p>
                 <p className="mt-0.5 line-clamp-2 text-[13px] leading-relaxed text-muted">
-                  {'detail' in item ? item.detail : ''}
+                  {'detail' in item ? postCopy.detail(item as CommunityPost) : ''}
                 </p>
               </div>
               <span className="shrink-0 text-[11.5px] text-[#736E66]">
@@ -452,6 +456,7 @@ function RecentKindness({ posts }: { posts: CommunityPost[] }) {
 }
 
 function TrustSection() {
+  const { t } = useI18n();
   const points = [
     {
       icon: BadgeCheck,
@@ -480,22 +485,21 @@ function TrustSection() {
         <div className="grid gap-9 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] lg:gap-16">
           <div>
             <Pill tone="brand" icon={<Lock className="size-3" aria-hidden="true" />}>
-              Trust &amp; safety
+              {t('Trust & safety')}
             </Pill>
             <h2 className="mt-3 text-[30px] font-semibold leading-tight tracking-[-0.035em] sm:text-[36px]">
-              Money between strangers needs guardrails, not vibes.
+              {t('Money between strangers needs guardrails, not vibes.')}
             </h2>
             <p className="mt-3 max-w-sm text-[14px] leading-relaxed text-[#5C5862]">
-              BILL SWIPE is designed so that no swipe, tap, or stray request can move money without an explicit,
-              itemised confirmation.
+              {t('BILL SWIPE is designed so that no swipe, tap, or stray request can move money without an explicit, itemised confirmation.')}
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {points.map((point) => (
               <div key={point.title} className="rounded-2xl border border-line bg-white p-4">
                 <point.icon className="size-[18px] text-brand-ink" aria-hidden="true" />
-                <h3 className="mt-2.5 text-[14px] font-semibold leading-snug">{point.title}</h3>
-                <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{point.body}</p>
+                <h3 className="mt-2.5 text-[14px] font-semibold leading-snug">{t(point.title)}</h3>
+                <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{t(point.body)}</p>
               </div>
             ))}
           </div>
@@ -506,6 +510,7 @@ function TrustSection() {
 }
 
 function Faq() {
+  const { t } = useI18n();
   const items = [
     {
       q: 'Does swiping right send money?',
@@ -532,9 +537,9 @@ function Faq() {
   return (
     <section className="mx-auto max-w-[880px] px-5 py-14 sm:px-8 lg:py-20">
       <div className="text-center">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink">FAQ</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink">{t('FAQ')}</p>
         <h2 className="mt-2 text-[30px] font-semibold leading-tight tracking-[-0.035em] sm:text-[36px]">
-          The questions people actually ask
+          {t('The questions people actually ask')}
         </h2>
       </div>
       <div className="mt-8 divide-y divide-line overflow-hidden rounded-[22px] border border-line bg-white">
@@ -546,7 +551,7 @@ function Faq() {
               aria-expanded={open === i}
               className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition hover:bg-[#FBFAF8]"
             >
-              <span className="text-[14.5px] font-semibold">{item.q}</span>
+              <span className="text-[14.5px] font-semibold">{t(item.q)}</span>
               <ChevronDown
                 className={`size-4 shrink-0 text-muted transition-transform ${open === i ? 'rotate-180' : ''}`}
                 aria-hidden="true"
@@ -558,7 +563,7 @@ function Faq() {
                 animate={{ height: 'auto', opacity: 1 }}
                 className="overflow-hidden"
               >
-                <p className="px-5 pb-4 text-[13.5px] leading-relaxed text-[#5C5862]">{item.a}</p>
+                <p className="px-5 pb-4 text-[13.5px] leading-relaxed text-[#5C5862]">{t(item.a)}</p>
               </motion.div>
             )}
           </div>
@@ -569,6 +574,7 @@ function Faq() {
 }
 
 function FinalCta({ user }: { user: { displayName: string } | null }) {
+  const { t } = useI18n();
   return (
     <section className="mx-auto max-w-[1440px] px-5 pb-16 sm:px-8">
       <div className="relative overflow-hidden rounded-[28px] bg-[#191919] px-6 py-12 text-center sm:px-12 sm:py-16">
@@ -583,15 +589,14 @@ function FinalCta({ user }: { user: { displayName: string } | null }) {
         <div className="relative">
           <Logo size={44} className="mx-auto" />
           <h2 className="mx-auto mt-5 max-w-2xl text-[30px] font-semibold leading-tight tracking-[-0.035em] text-white sm:text-[42px]">
-            {user ? `Ready when you are, ${user.displayName.split(' ')[0]}.` : 'Someone is one swipe away from a better day.'}
+            {user ? t('Ready when you are, {name}.', { name: user.displayName.split(' ')[0]! }) : t('Someone is one swipe away from a better day.')}
           </h2>
           <p className="mx-auto mt-3 max-w-md text-[14px] leading-relaxed text-white/65">
-            Free to browse. Free to post. You only ever pay when you decide to help, and you always see the total
-            first.
+            {t('Free to browse. Free to post. You only ever pay when you decide to help, and you always see the total first.')}
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <LinkButton to="/discover" size="lg" variant="help" trailing={<ArrowRight className="size-4" aria-hidden="true" />}>
-              Start swiping
+              {t('Start swiping')}
             </LinkButton>
             <LinkButton
               to={user ? '/bills/new' : '/register'}
@@ -599,7 +604,7 @@ function FinalCta({ user }: { user: { displayName: string } | null }) {
               variant="ghost"
               className="border border-white/20 bg-white/10 text-white hover:bg-white/15"
             >
-              Post your bill
+              {t('Post your bill')}
             </LinkButton>
           </div>
         </div>

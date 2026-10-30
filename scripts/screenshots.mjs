@@ -15,7 +15,7 @@ const MOBILE = { width: 390, height: 844 };
 const browser = await chromium.launch();
 const errors = [];
 
-async function newPage(viewport, mobile = false) {
+async function newPage(viewport, mobile = false, lang = 'en') {
   const context = await browser.newContext({
     viewport,
     deviceScaleFactor: 2,
@@ -28,6 +28,8 @@ async function newPage(viewport, mobile = false) {
   page.on('console', (msg) => {
     if (msg.type() === 'error') errors.push(`${page.url()} :: ${msg.text()}`);
   });
+  await page.goto(base, { waitUntil: 'domcontentloaded' });
+  await page.evaluate((code) => window.localStorage.setItem('billswipe.lang', code), lang);
   return { context, page };
 }
 
@@ -53,6 +55,38 @@ async function newPage(viewport, mobile = false) {
     ['/', 'landing-mobile'],
     ['/discover', 'discover-mobile'],
     ['/community', 'community-mobile'],
+  ]) {
+    await page.goto(`${base}${path}`, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1400);
+    await page.screenshot({ path: `${outDir}/${name}.png` });
+    console.log('shot', name);
+  }
+  await context.close();
+}
+
+// --- Chinese desktop ---------------------------------------------------------
+{
+  const { context, page } = await newPage(DESKTOP, false, 'zh');
+  for (const [path, name] of [
+    ['/', 'landing-zh-desktop'],
+    ['/how-it-works', 'how-it-works-zh-desktop'],
+    ['/community', 'community-zh-desktop'],
+  ]) {
+    await page.goto(`${base}${path}`, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1400);
+    await page.screenshot({ path: `${outDir}/${name}.png` });
+    console.log('shot', name);
+  }
+  await context.close();
+}
+
+// --- mobile in both languages ------------------------------------------------
+for (const lang of ['zh', 'en']) {
+  const { context, page } = await newPage(MOBILE, true, lang);
+  const suffix = lang === 'zh' ? '-zh' : '';
+  for (const [path, name] of [
+    ['/', `landing-mobile${suffix}`],
+    ['/discover', `discover-mobile${suffix}`],
   ]) {
     await page.goto(`${base}${path}`, { waitUntil: 'networkidle' });
     await page.waitForTimeout(1400);

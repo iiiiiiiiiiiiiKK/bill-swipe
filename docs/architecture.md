@@ -98,6 +98,18 @@ Invariants enforced in `settlePayment` (inside one transaction):
 - `src/lib/api.ts` — typed fetch wrapper that normalises errors into `ApiRequestError` with field-level messages.
 - Illustrations (`ReceiptArt`) are deterministic SVG generated from the bill id — no third-party images, no fake photography of real people.
 
+## Internationalisation
+
+- `src/lib/i18n.tsx` holds the dictionary (**English source string → Chinese**) plus an `I18nProvider` and a `useI18n()` hook exposing `t`, `tp` (plural), `money`, `date`, `timeAgo` and `num`.
+- Keys are the English copy itself (gettext-style msgids) so components stay readable and a missing entry degrades to English rather than showing a key.
+- Lookups run through a normalised index that ignores curly vs straight quotes and en/em dashes — the copy uses typographic characters, the dictionary is written plainly, and they still match.
+- `language` lives in `localStorage` for instant start-up, defaults to `navigator.language`, and is mirrored to `users.locale` with a fire-and-forget `PATCH /api/me` so it can follow the account.
+- `document.documentElement.lang` is kept in sync (screen readers, hyphenation, CJK font fallback).
+- **Server copy stays language-agnostic**: notification titles and community headlines are generated in English, and the client recomposes them from structured fields (`src/lib/communityCopy.ts`). Bill text written by members is never machine-translated.
+- Demo fixtures are bilingual by construction (`src/lib/demoContent.ts`), keyed by their English title.
+- `scripts/audit-i18n.mjs` crawls every route in Chinese and fails if any English remains — currently 0.
+- Layout was re-verified in Chinese: CJK glyphs are wider, which surfaced a 2 px header overflow at 320 px that was fixed by collapsing the switcher label below 360 px.
+
 ## Performance notes
 
 - Route-level code splitting keeps the initial bundle small (main chunk ≈ 96 kB gzipped).

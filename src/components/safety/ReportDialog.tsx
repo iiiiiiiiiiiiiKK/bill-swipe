@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useI18n } from '@/lib/i18n';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Flag, Loader2, X } from 'lucide-react';
 import { api, ApiRequestError } from '@/lib/api';
@@ -29,6 +30,7 @@ export function ReportDialog({
   targetId: string;
   targetLabel: string;
 }) {
+  const { t } = useI18n();
   const toast = useToast();
   const [reason, setReason] = useState(REASONS[0]!);
   const [details, setDetails] = useState('');
@@ -59,11 +61,11 @@ export function ReportDialog({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
-          <button type="button" aria-label="Close" onClick={onClose} className="absolute inset-0 bg-[#191919]/45" />
+          <button type="button" aria-label={t('Close')} onClick={onClose} className="absolute inset-0 bg-[#191919]/45" />
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-label="Report"
+            aria-label={t('Report')}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -75,14 +77,14 @@ export function ReportDialog({
                 <Flag className="size-4 text-[#C02444]" aria-hidden="true" />
                 Report this {targetType}
               </h2>
-              <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-muted hover:bg-black/5" aria-label="Close">
+              <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-muted hover:bg-black/5" aria-label={t('Close')}>
                 <X className="size-4" aria-hidden="true" />
               </button>
             </div>
             <p className="mt-1 truncate text-[12.5px] text-muted">{targetLabel}</p>
 
             <fieldset className="mt-3 space-y-1.5">
-              <legend className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">Reason</legend>
+              <legend className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">{t('Reason')}</legend>
               {REASONS.map((option) => (
                 <label
                   key={option}
@@ -105,7 +107,7 @@ export function ReportDialog({
             </fieldset>
 
             <label htmlFor="report-details" className="mt-3 block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">
-              Details (optional)
+              {t('Details (optional)')}
             </label>
             <textarea
               id="report-details"
@@ -113,7 +115,7 @@ export function ReportDialog({
               onChange={(e) => setDetails(e.target.value.slice(0, 1000))}
               rows={3}
               className="mt-1.5 w-full resize-none rounded-xl border border-line px-3 py-2 text-[13px] outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15"
-              placeholder="Anything we should know?"
+              placeholder={t('Anything we should know?')}
             />
 
             {error && (
@@ -124,7 +126,7 @@ export function ReportDialog({
 
             <div className="mt-3 flex gap-2">
               <Button variant="pass" block onClick={onClose}>
-                Cancel
+                {t('Cancel')}
               </Button>
               <Button variant="danger" block onClick={() => void submit()} disabled={busy}>
                 {busy ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : 'Send report'}

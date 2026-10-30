@@ -9,8 +9,10 @@ Recorded against the live deployment `https://billswipe.852367856.dpdns.org` and
 | TypeScript (strict) | `npm run typecheck` | **0 errors** |
 | Unit + integration | `npm test` | **38 / 38 passed** |
 | API contract (black box) | `node scripts/smoke.mjs <url>` | **31 / 31 passed** |
-| End-to-end journeys | `npm run test:e2e` | **27 passed, 1 skipped** (desktop Chrome + iPhone 13 / WebKit) |
-| Responsive / a11y / contrast | `node scripts/audit-ui.mjs <url>` | **337 / 337 passed** across 8 viewports |
+| End-to-end journeys | `npm run test:e2e` | **29 passed, 1 skipped** (desktop Chrome + iPhone 13 / WebKit) |
+| Responsive / a11y / contrast (EN) | `node scripts/audit-ui.mjs <url> en` | **337 / 337 passed** across 8 viewports |
+| Responsive / a11y / contrast (中文) | `node scripts/audit-ui.mjs <url> zh` | **337 / 337 passed** across 8 viewports |
+| Translation coverage | `node scripts/audit-i18n.mjs <url>` | **0 untranslated strings** across 13 routes |
 | Production build | `npm run build` | Success (main chunk ≈ 96 kB gzip) |
 
 ## Unit and integration tests — 38 passing
@@ -51,7 +53,7 @@ ok admin login · ok admin overview · ok admin pending queue · ok admin approv
 ok audit log written · ok admin refund · ok refund decrements raised (2000 → 1000)
 ```
 
-## End-to-end journeys — 27 passed, 1 skipped
+## End-to-end journeys — 29 passed, 1 skipped
 
 Playwright, running against the live URL in two projects (desktop Chrome 1440×900 and iPhone 13 / WebKit).
 
@@ -64,6 +66,7 @@ Playwright, running against the live URL in two projects (desktop Chrome 1440×9
 | Sandbox disclosure | `/payments-info` states sandbox mode |
 | **Help flow** | register → pass → help → `$10` → continue → confirm screen (fee + total + sandbox notice) → confirm → success state → close |
 | Keyboard | `←` advances the deck (desktop only; skipped on mobile) |
+| **Language switcher** | switch to Chinese → nav/hero/footer flip, `html[lang]=zh-CN`, survives reload, Discover renders in Chinese, switch back to English |
 | **Post a bill** | five-step wizard → submit → redirect to the bill → status "In review" |
 | Validation | wizard blocks progress without a 60-character story |
 | Admin | login → dashboard counters → review queue with Approve controls → audit tab |
@@ -95,6 +98,15 @@ Findings fixed during development, all re-verified:
 | Category chips and wordmark under 4.5:1 | Darker category ink palette, `brand-ink` for the wordmark |
 | Muted body text at 3.5:1 | Token darkened to `#6E6B78`; tertiary labels to `#736E66` |
 | Avatar initials 1:1 on light gradients | Darkened the generated avatar palette |
+
+## Translation coverage
+
+`scripts/audit-i18n.mjs` loads thirteen routes with Chinese active, walks every visible text node, filters out intentionally Latin strings (brand, currency, status enums, generated receipt digits) and fails on anything still English. The current build reports **0** untranslated strings.
+
+Two categories are translated by design rather than by lookup:
+
+- **Demo fixtures** (16 bills, helper names, sample comments) ship in both languages in `src/lib/demoContent.ts` and the dictionary.
+- **Server-generated copy** (notifications, community headlines) is stored in English and recomposed client-side from structured fields, so the database stays language-agnostic.
 
 ## What is *not* covered
 

@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useI18n } from '@/lib/i18n';
+import { usePostCopy } from '@/lib/communityCopy';
+import { useDemoTitle } from '@/lib/demoContent';
 import { Link } from 'react-router-dom';
 import { Heart, HeartHandshake, Loader2, MessageCircle, Send, Sparkles, Users } from 'lucide-react';
 import type { CommunityPost, CommunityStats } from '@shared/types';
@@ -9,10 +12,12 @@ import { PageHeader } from '@/components/layout/AppShell';
 import { Avatar } from '@/components/ui/Avatar';
 import { Button } from '@/components/ui/Button';
 import { Pill, Skeleton } from '@/components/ui/Primitives';
-import { formatMoney } from '@shared/money';
-import { cn, timeAgo } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 export default function Community() {
+  const { t, timeAgo, money, num } = useI18n();
+  const postCopy = usePostCopy();
+  const demoTtitle = useDemoTitle();
   const { user } = useAuth();
   const toast = useToast();
   const [posts, setPosts] = useState<CommunityPost[] | null>(null);
@@ -102,21 +107,21 @@ export default function Community() {
   return (
     <div className="mx-auto max-w-[860px]">
       <PageHeader
-        title="Community"
-        description="Real help, as it happens. Every entry is generated from an actual payment record."
+        title={t('Community')}
+        description={t('Real help, as it happens. Every entry is generated from an actual payment record.')}
       />
 
       {stats && (
         <div className="px-5 sm:px-8">
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-            <StatCard icon={<Heart className="size-4" aria-hidden="true" />} label="Bills helped" value={stats.billsHelped.toLocaleString()} />
-            <StatCard icon={<Sparkles className="size-4" aria-hidden="true" />} label="Given" value={formatMoney(stats.amountGiven, stats.currency)} />
-            <StatCard icon={<Users className="size-4" aria-hidden="true" />} label="People supported" value={stats.peopleSupported.toLocaleString()} />
-            <StatCard icon={<HeartHandshake className="size-4" aria-hidden="true" />} label="Connections" value={stats.connections.toLocaleString()} />
+            <StatCard icon={<Heart className="size-4" aria-hidden="true" />} label={t('Bills helped')} value={num(stats.billsHelped)} />
+            <StatCard icon={<Sparkles className="size-4" aria-hidden="true" />} label="Given" value={money(stats.amountGiven, stats.currency)} />
+            <StatCard icon={<Users className="size-4" aria-hidden="true" />} label={t('People supported')} value={num(stats.peopleSupported)} />
+            <StatCard icon={<HeartHandshake className="size-4" aria-hidden="true" />} label="Connections" value={num(stats.connections)} />
           </div>
           {stats.demoIncluded && (
             <p className="mt-2 text-[11px] text-[#736E66]">
-              Includes labelled demo records seeded for this preview. No figures are fabricated beyond that.
+              {t('Includes labelled demo records seeded for this preview. No figures are fabricated beyond that.')}
             </p>
           )}
         </div>
@@ -135,8 +140,8 @@ export default function Community() {
 
         {posts?.length === 0 && (
           <div className="card-shell px-6 py-12 text-center">
-            <p className="text-[15px] font-semibold">No moments yet</p>
-            <p className="mt-1 text-[13px] text-muted">Be the first to help someone — it will show up right here.</p>
+            <p className="text-[15px] font-semibold">{t('No moments yet')}</p>
+            <p className="mt-1 text-[13px] text-muted">{t('Be the first to help someone — it will show up right here.')}</p>
           </div>
         )}
 
@@ -153,25 +158,25 @@ export default function Community() {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-1.5">
                   <p className="text-[13.5px] font-semibold">
-                    {post.actor?.isAnonymous ? 'Someone kind' : post.actor?.displayName ?? 'BILL SWIPE'}
+                    {post.actor?.isAnonymous ? t('Someone kind') : t(post.actor?.displayName ?? 'BILL SWIPE')}
                   </p>
-                  {post.kind === 'help' && <Pill tone="mint">Helped</Pill>}
-                  {post.kind === 'milestone' && <Pill tone="neutral">Update</Pill>}
+                  {post.kind === 'help' && <Pill tone="mint">{t('Helped')}</Pill>}
+                  {post.kind === 'milestone' && <Pill tone="neutral">{t('Update')}</Pill>}
                   <span className="text-[11px] text-[#736E66]">· {timeAgo(post.createdAt)}</span>
                 </div>
-                <p className="mt-1.5 text-[13.5px] leading-relaxed text-[#3A3740]">{post.headline}</p>
-                {post.detail && <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{post.detail}</p>}
+                <p className="mt-1.5 text-[13.5px] leading-relaxed text-[#3A3740]">{postCopy.headline(post)}</p>
+                {post.detail && <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{postCopy.detail(post)}</p>}
                 {post.billId && (
                   <Link
                     to={`/bills/${post.billId}`}
                     className="mt-2 inline-flex min-h-[32px] items-center gap-1 rounded-lg bg-[#FAF8F5] px-2.5 text-[11.5px] font-semibold text-[#57534E] transition hover:bg-brand-soft hover:text-brand-ink"
                   >
-                    {post.billTitle ?? 'View bill'} →
+                    {post.billTitle ? demoTtitle(post.billTitle) : t('View bill')} →
                   </Link>
                 )}
                 {post.amount !== null && (
                   <p className="money-tabular mt-2 text-[15px] font-bold">
-                    {formatMoney(post.amount, post.currency)}
+                    {money(post.amount, post.currency)}
                   </p>
                 )}
               </div>
@@ -209,8 +214,8 @@ export default function Community() {
                     <Avatar name={c.author.displayName} seed={c.author.avatarSeed} src={c.author.avatarUrl} size={22} />
                     <div className="min-w-0 flex-1">
                       <p className="text-[12px] leading-relaxed">
-                        <span className="font-semibold">{c.author.displayName}</span>{' '}
-                        <span className="text-[#3A3740]">{c.body}</span>
+                        <span className="font-semibold">{t(c.author.displayName)}</span>{' '}
+                        <span className="text-[#3A3740]">{t(c.body)}</span>
                       </p>
                       <p className="text-[10px] text-[#7C776F]">{timeAgo(c.createdAt)}</p>
                     </div>
@@ -231,7 +236,7 @@ export default function Community() {
                   disabled={!user}
                   className="h-9 min-w-0 flex-1 rounded-xl border border-line px-3 text-[12.5px] outline-none focus:border-brand focus:ring-2 focus:ring-brand/15 disabled:bg-[#FAF8F5]"
                 />
-                <Button size="sm" onClick={() => void submitComment(post)} disabled={busy || !user} aria-label="Send comment">
+                <Button size="sm" onClick={() => void submitComment(post)} disabled={busy || !user} aria-label={t('Send comment')}>
                   {busy ? <Loader2 className="size-3.5 animate-spin" aria-hidden="true" /> : <Send className="size-3.5" aria-hidden="true" />}
                 </Button>
               </div>
@@ -240,7 +245,7 @@ export default function Community() {
         ))}
 
         <p className="pt-2 text-center text-[11px] leading-relaxed text-[#736E66]">
-          Comments are rate-limited and moderated. Harassment or exposing someone&apos;s identity gets removed.
+          {t("Comments are rate-limited and moderated. Harassment or exposing someone's identity gets removed.")}
         </p>
       </div>
     </div>

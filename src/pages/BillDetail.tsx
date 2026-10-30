@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useI18n } from '@/lib/i18n';
+import { localizeDemoBill } from '@/lib/demoContent';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -29,10 +31,11 @@ import { ReceiptArt } from '@/components/bill/ReceiptArt';
 import { HelpSheet } from '@/components/payment/HelpSheet';
 import { ReportDialog } from '@/components/safety/ReportDialog';
 import { categoryOf } from '@shared/categories';
-import { formatMoney, percent } from '@shared/money';
-import { cn, daysUntil, formatDate, timeAgo } from '@/lib/utils';
+import { percent } from '@shared/money';
+import { cn, daysUntil } from '@/lib/utils';
 
 export default function BillDetailPage() {
+  const { t, lang, date: formatDate, timeAgo, money } = useI18n();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -49,13 +52,13 @@ export default function BillDetailPage() {
     setError(null);
     try {
       const res = await api.get<{ bill: BillDetail }>(`/bills/${id}`);
-      setBill(res.bill);
+      setBill(localizeDemoBill(res.bill, lang));
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Could not load this bill.');
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, lang]);
 
   useEffect(() => {
     void load();
@@ -83,14 +86,14 @@ export default function BillDetailPage() {
         <span className="flex size-14 items-center justify-center rounded-2xl bg-coral-soft">
           <X className="size-6 text-[#C02444]" aria-hidden="true" />
         </span>
-        <h1 className="mt-4 text-[20px] font-semibold">Bill unavailable</h1>
+        <h1 className="mt-4 text-[20px] font-semibold">{t('Bill unavailable')}</h1>
         <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">{error ?? 'This bill may have been removed.'}</p>
         <div className="mt-5 flex gap-2">
           <Button onClick={() => void load()} variant="soft">
-            Try again
+            {t('Try again')}
           </Button>
           <LinkButton to="/discover" variant="pass">
-            Back to Discover
+            {t('Back to Discover')}
           </LinkButton>
         </div>
       </div>
@@ -111,7 +114,7 @@ export default function BillDetailPage() {
         className="mb-4 inline-flex items-center gap-1.5 rounded-xl px-1 py-1 text-[13px] font-semibold text-[#57534E] transition hover:text-ink"
       >
         <ArrowLeft className="size-4" aria-hidden="true" />
-        Back
+        {t('Back')}
       </button>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-8">
@@ -132,12 +135,12 @@ export default function BillDetailPage() {
                 >
                   {cat.label}
                 </span>
-                {bill.isDemo && <Pill tone="neutral">Demo</Pill>}
+                {bill.isDemo && <Pill tone="neutral">{t('Demo')}</Pill>}
               </div>
               <div className="absolute right-4 top-4 flex flex-col items-end gap-1.5">
                 {bill.verificationStatus === 'verified' && (
                   <Pill tone="mint" icon={<BadgeCheck className="size-3" aria-hidden="true" />}>
-                    Verified
+                    {t('Verified')}
                   </Pill>
                 )}
                 <Pill tone={statusPill.tone}>{statusPill.label}</Pill>
@@ -168,15 +171,15 @@ export default function BillDetailPage() {
               <div className="mt-5 rounded-2xl bg-[#FAF8F5] p-4">
                 <div className="flex flex-wrap items-end justify-between gap-3">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">Needed</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">{t('Needed')}</p>
                     <p className="money-tabular mt-0.5 text-[32px] font-bold leading-none tracking-[-0.03em]">
-                      {formatMoney(bill.targetAmount, bill.currency)}
+                      {money(bill.targetAmount, bill.currency)}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">Raised</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">{t('Raised')}</p>
                     <p className="money-tabular mt-0.5 text-[17px] font-semibold text-[#0F7A52]">
-                      {formatMoney(bill.raisedAmount, bill.currency)}
+                      {money(bill.raisedAmount, bill.currency)}
                     </p>
                   </div>
                 </div>
@@ -184,13 +187,13 @@ export default function BillDetailPage() {
                 <div className="mt-2 flex items-center justify-between text-[12px]">
                   <span className="font-semibold">{progress}% funded</span>
                   <span className="text-muted">
-                    {remaining > 0 ? `${formatMoney(remaining, bill.currency)} to go` : 'Goal reached 🎉'}
+                    {remaining > 0 ? `${money(remaining, bill.currency)} to go` : 'Goal reached 🎉'}
                   </span>
                 </div>
               </div>
 
               <div className="mt-5">
-                <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">Their story</h2>
+                <h2 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">{t('Their story')}</h2>
                 <div className="mt-2 space-y-3 text-[14.5px] leading-[1.7] text-[#3A3740]">
                   {bill.story.split(/\n{2,}/).map((para, i) => (
                     <p key={i}>{para}</p>
@@ -213,7 +216,7 @@ export default function BillDetailPage() {
 
               {bill.reviewNote && (bill.viewer.isOwner || bill.admin) && (
                 <div className="mt-4 rounded-2xl bg-amber-soft p-3.5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#9A6600]">Reviewer note</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#9A6600]">{t('Reviewer note')}</p>
                   <p className="mt-1 text-[13px] leading-relaxed text-[#7A5200]">{bill.reviewNote}</p>
                 </div>
               )}
@@ -222,7 +225,7 @@ export default function BillDetailPage() {
 
           {bill.updates.length > 0 && (
             <section className="rounded-[22px] border border-line bg-white p-5 shadow-soft">
-              <h2 className="text-[14px] font-semibold">Updates</h2>
+              <h2 className="text-[14px] font-semibold">{t('Updates')}</h2>
               <ul className="mt-3 space-y-3">
                 {bill.updates.map((update) => (
                   <li key={update.id} className="flex gap-3">
@@ -250,7 +253,7 @@ export default function BillDetailPage() {
             </div>
             {bill.helpers.length === 0 ? (
               <p className="mt-3 rounded-xl bg-[#FAF8F5] px-3 py-3 text-[12.5px] leading-relaxed text-muted">
-                No confirmed help yet. The first person to step in will show up here.
+                {t('No confirmed help yet. The first person to step in will show up here.')}
               </p>
             ) : (
               <ul className="mt-3 divide-y divide-line">
@@ -271,7 +274,7 @@ export default function BillDetailPage() {
                       </p>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="money-tabular text-[13px] font-semibold">{formatMoney(record.amount, record.currency)}</p>
+                      <p className="money-tabular text-[13px] font-semibold">{money(record.amount, record.currency)}</p>
                       <p className="text-[10.5px] text-muted">{timeAgo(record.createdAt)}</p>
                     </div>
                   </li>
@@ -296,7 +299,7 @@ export default function BillDetailPage() {
               {bill.viewer.isOwner ? (
                 <>
                   <LinkButton to={`/bills/${bill.id}/edit`} block variant="soft" icon={<Pencil className="size-4" aria-hidden="true" />}>
-                    Edit bill
+                    {t('Edit bill')}
                   </LinkButton>
                   <p className="text-center text-[11px] leading-relaxed text-[#736E66]">
                     {bill.viewer.canEdit
@@ -325,12 +328,12 @@ export default function BillDetailPage() {
                   {user && bill.viewer.hasHelped && (
                     <p className="flex items-center justify-center gap-1.5 text-[11.5px] font-semibold text-[#0F7A52]">
                       <CheckCircle2 className="size-3.5" aria-hidden="true" />
-                      You already helped {formatMoney(bill.viewer.helpedAmount, bill.currency)}
+                      You already helped {money(bill.viewer.helpedAmount, bill.currency)}
                     </p>
                   )}
                   <div className="grid grid-cols-2 gap-2">
                     <Button variant="pass" size="sm" onClick={() => void share()} icon={<Share2 className="size-3.5" aria-hidden="true" />}>
-                      Share
+                      {t('Share')}
                     </Button>
                     <Button
                       variant="ghost"
@@ -339,7 +342,7 @@ export default function BillDetailPage() {
                       onClick={() => (user ? setReportOpen(true) : navigate('/login'))}
                       icon={<Flag className="size-3.5" aria-hidden="true" />}
                     >
-                      Report
+                      {t('Report')}
                     </Button>
                   </div>
                 </>
@@ -356,14 +359,14 @@ export default function BillDetailPage() {
           </section>
 
           <section className="rounded-[22px] border border-line bg-white p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">Bill facts</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">{t('Bill facts')}</p>
             <dl className="mt-2.5 space-y-2 text-[12.5px]">
-              <Row label="Category" value={cat.label} />
-              <Row label="Currency" value={bill.currency} />
-              <Row label="Helpers" value={`${bill.helperCount}`} icon={<Users className="size-3" aria-hidden="true" />} />
-              <Row label="Due" value={formatDate(bill.dueDate)} />
-              {due !== null && due >= 0 && due <= 30 && <Row label="Days left" value={`${due}`} />}
-              <Row label="Status" value={statusPill.label} />
+              <Row label={t('Category')} value={cat.label} />
+              <Row label={t('Currency')} value={bill.currency} />
+              <Row label={t('Helpers')} value={`${bill.helperCount}`} icon={<Users className="size-3" aria-hidden="true" />} />
+              <Row label={t('Due')} value={formatDate(bill.dueDate)} />
+              {due !== null && due >= 0 && due <= 30 && <Row label={t('Days left')} value={`${due}`} />}
+              <Row label={t('Status')} value={statusPill.label} />
             </dl>
           </section>
 
@@ -372,7 +375,7 @@ export default function BillDetailPage() {
             className="flex items-center gap-2 rounded-2xl border border-line bg-white px-4 py-3 text-[12.5px] font-semibold text-[#57534E] transition hover:border-[#CFC9C0]"
           >
             <ShieldCheck className="size-4 text-brand-ink" aria-hidden="true" />
-            How we keep this safe
+            {t('How we keep this safe')}
           </Link>
         </aside>
       </div>
@@ -420,6 +423,7 @@ function statusTone(status: string, verification: string): { label: string; tone
 }
 
 function DetailSkeleton() {
+  const { t } = useI18n();
   return (
     <div className="mx-auto max-w-[1120px] px-4 pt-6 sm:px-8">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -442,7 +446,7 @@ function DetailSkeleton() {
       </div>
       <div className="mt-8 flex items-center justify-center gap-2 text-[12px] text-muted">
         <Loader2 className={cn('size-4 animate-spin')} aria-hidden="true" />
-        Loading bill…
+        {t('Loading bill…')}
       </div>
     </div>
   );

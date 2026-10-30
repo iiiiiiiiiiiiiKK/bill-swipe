@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useI18n } from '@/lib/i18n';
+import { usePaymentStatusLabel } from '@/lib/labels';
 import { Link, useNavigate } from 'react-router-dom';
 import { BadgeCheck, Clock3, Heart, Inbox, Loader2, Receipt, Wallet } from 'lucide-react';
 import type { Payment } from '@shared/types';
@@ -7,8 +9,8 @@ import { useAuth } from '@/lib/auth';
 import { PageHeader } from '@/components/layout/AppShell';
 import { EmptyState, Pill, Skeleton } from '@/components/ui/Primitives';
 import { LinkButton } from '@/components/ui/Button';
-import { cn, timeAgo } from '@/lib/utils';
-import { formatMoney } from '@shared/money';
+import { cn } from '@/lib/utils';
+
 
 type Tab = 'given' | 'received';
 
@@ -24,6 +26,7 @@ interface ReceivedEntry {
 }
 
 export default function Activity() {
+  const { t, money, timeAgo } = useI18n();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('given');
@@ -77,7 +80,7 @@ export default function Activity() {
 
   return (
     <div>
-      <PageHeader title="Activity" description="Everything you have given — and everything that came in.">
+      <PageHeader title={t('Activity')} description="Everything you have given — and everything that came in.">
         <div className="mt-5 flex gap-1.5 rounded-xl bg-white p-1 ring-1 ring-line">
           {(['given', 'received'] as Tab[]).map((id) => (
             <button
@@ -101,18 +104,18 @@ export default function Activity() {
         {tab === 'given' ? (
           <>
             <div className="grid grid-cols-3 gap-2.5">
-              <MiniStat label="Bills helped" value={String(totals.count)} icon={<Heart className="size-3.5" aria-hidden="true" />} />
-              <MiniStat label="Total given" value={formatMoney(totals.amount)} icon={<Wallet className="size-3.5" aria-hidden="true" />} />
-              <MiniStat label="Pending" value={String(totals.pending)} icon={<Clock3 className="size-3.5" aria-hidden="true" />} />
+              <MiniStat label={t('Bills helped')} value={String(totals.count)} icon={<Heart className="size-3.5" aria-hidden="true" />} />
+              <MiniStat label={t('Total given')} value={money(totals.amount)} icon={<Wallet className="size-3.5" aria-hidden="true" />} />
+              <MiniStat label={t('Pending')} value={String(totals.pending)} icon={<Clock3 className="size-3.5" aria-hidden="true" />} />
             </div>
 
             {(payments ?? []).length === 0 ? (
               <div className="card-shell mt-4">
                 <EmptyState
                   icon={<Heart className="size-6" aria-hidden="true" />}
-                  title="No help sent yet"
+                  title={t('No help sent yet')}
                   description="When you choose to help someone, the payment and its status will show up here."
-                  action={<LinkButton to="/discover">Find a bill to help</LinkButton>}
+                  action={<LinkButton to="/discover">{t('Find a bill to help')}</LinkButton>}
                 />
               </div>
             ) : (
@@ -152,7 +155,7 @@ export default function Activity() {
                       </p>
                     </Link>
                     <div className="shrink-0 text-right">
-                      <p className="money-tabular text-[13.5px] font-bold">{formatMoney(payment.amount, payment.currency)}</p>
+                      <p className="money-tabular text-[13.5px] font-bold">{money(payment.amount, payment.currency)}</p>
                       <StatusTag status={payment.status} />
                     </div>
                   </li>
@@ -167,17 +170,17 @@ export default function Activity() {
         ) : (
           <>
             <div className="grid grid-cols-2 gap-2.5">
-              <MiniStat label="Total received" value={formatMoney(received?.total ?? 0, received?.currency)} icon={<Inbox className="size-3.5" aria-hidden="true" />} />
-              <MiniStat label="Helpers" value={String(received?.entries.length ?? 0)} icon={<Heart className="size-3.5" aria-hidden="true" />} />
+              <MiniStat label={t('Total received')} value={money(received?.total ?? 0, received?.currency)} icon={<Inbox className="size-3.5" aria-hidden="true" />} />
+              <MiniStat label={t('Helpers')} value={String(received?.entries.length ?? 0)} icon={<Heart className="size-3.5" aria-hidden="true" />} />
             </div>
 
             {(received?.entries.length ?? 0) === 0 ? (
               <div className="card-shell mt-4">
                 <EmptyState
                   icon={<Inbox className="size-6" aria-hidden="true" />}
-                  title="No help received yet"
+                  title={t('No help received yet')}
                   description="Once someone helps one of your bills, their contribution appears here — anonymously if they chose that."
-                  action={<LinkButton to="/bills/new">Post a bill</LinkButton>}
+                  action={<LinkButton to="/bills/new">{t('Post a bill')}</LinkButton>}
                 />
               </div>
             ) : (
@@ -193,7 +196,7 @@ export default function Activity() {
                         {entry.anonymous ? 'Anonymous helper' : entry.from ?? 'A helper'} · {timeAgo(entry.createdAt)}
                       </p>
                     </Link>
-                    <p className="money-tabular shrink-0 text-[13.5px] font-bold">{formatMoney(entry.amount)}</p>
+                    <p className="money-tabular shrink-0 text-[13.5px] font-bold">{money(entry.amount)}</p>
                   </li>
                 ))}
               </ul>
@@ -219,15 +222,8 @@ function MiniStat({ label, value, icon }: { label: string; value: string; icon: 
 }
 
 function StatusTag({ status }: { status: string }) {
-  const map: Record<string, { label: string; tone: 'mint' | 'amber' | 'coral' | 'neutral' | 'brand' }> = {
-    succeeded: { label: 'Succeeded', tone: 'mint' },
-    pending: { label: 'Pending', tone: 'amber' },
-    processing: { label: 'Processing', tone: 'brand' },
-    failed: { label: 'Failed', tone: 'coral' },
-    refunded: { label: 'Refunded', tone: 'neutral' },
-    disputed: { label: 'Disputed', tone: 'coral' },
-  };
-  const item = map[status] ?? { label: status, tone: 'neutral' as const };
+  const payStatus = usePaymentStatusLabel();
+  const item = payStatus(status);
   return (
     <span className="mt-0.5 block">
       <Pill tone={item.tone} className="px-1.5 py-0 text-[10px]">

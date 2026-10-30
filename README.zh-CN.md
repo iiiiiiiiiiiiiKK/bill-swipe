@@ -13,7 +13,9 @@
 [![Cloudflare Workers](https://img.shields.io/badge/运行于-Cloudflare%20Workers-F5A524?style=flat-square)](https://workers.cloudflare.com/)
 [![Follow on X](https://img.shields.io/badge/%F0%9D%95%8F-@0xkillcoin-191919?style=flat-square)](https://x.com/0xkillcoin)
 
-[English README](README.md) · [线上体验](https://billswipe.852367856.dpdns.org) · [作者 X](https://x.com/0xkillcoin)
+[English README](README.md) · [English site](https://billswipe.852367856.dpdns.org) · [线上体验](https://billswipe.852367856.dpdns.org) · [作者 X](https://x.com/0xkillcoin)
+
+**界面支持 中文 / English 一键切换** —— 顶栏即可切换，选择会被记住并同步到账户。
 
 </div>
 
@@ -49,6 +51,13 @@
 - **Activity**：我给出的帮助（含支付状态）与收到的帮助（尊重匿名）。
 - **个人中心**：统计、成就（刻意不与金额排名挂钩）、隐私开关、通知偏好、改密、拉黑名单。
 - **通知**：支付确认、账单审核结果、收到帮助、筹款完成。
+
+### 多语言（中文 / English）
+- 每页顶栏都有语言切换：移动端一枚地球图标即可切换，桌面端为 EN / 中文 分段控件。
+- 选择会保存在浏览器，**并同步到账户**（`profile.locale`），换设备也会跟随。
+- 首次访问按浏览器语言自动判断，中文用户默认进入中文界面。
+- 翻译覆盖完整：导航、首页文案、滑动卡片、支付流程、发布向导、社区、设置、后台各面板、错误页与 404 全部中文化；演示数据提供双语文案，真实用户内容按原文展示。
+- 日期、相对时间与数字格式随当前语言切换。
 
 ### 社区
 - 信息流由真实的帮助记录生成，不使用虚构证言；点赞与受审核的留言（服务端限流）。
@@ -154,12 +163,14 @@ npm run dev                 # 终端 2：UI at http://127.0.0.1:5173
 ```bash
 npm run typecheck                              # 严格 TypeScript，零错误
 npm test                                       # 38 个单元/集成测试（真实 SQLite）
-npm run test:e2e                               # 28 条 Playwright 端到端流程（桌面 Chrome + iPhone/WebKit）
+npm run test:e2e                               # 29 条 Playwright 端到端流程（桌面 Chrome + iPhone/WebKit）
 node scripts/smoke.mjs https://your-deployment # 31 项 API 契约检查
 node scripts/audit-ui.mjs https://your-deployment # 337 项响应式/无障碍检查
+node scripts/audit-ui.mjs https://your-deployment zh # 同上，中文界面
+node scripts/audit-i18n.mjs https://your-deployment # 翻译覆盖率，当前为 0 处未翻译
 ```
 
-测试实际证明的内容包括：金额零浮点漂移、费用取整、幂等与重放安全、退款回滚、并发不超额筹款；普通用户访问管理端返回 403；匿名帮助人对公众隐藏但对账单主人可见；沙箱提示出现在确认环节；320px → 1920px 视口无横向溢出、触控目标 ≥32px、正文无小于 10px 的字号、颜色对比度满足 WCAG AA。
+测试实际证明的内容包括：**整站切换中文再切回英文**（含刷新后仍保持）、中文界面下无横向溢出与对比度问题、以及 0 处未翻译字符串；金额零浮点漂移、费用取整、幂等与重放安全、退款回滚、并发不超额筹款；普通用户访问管理端返回 403；匿名帮助人对公众隐藏但对账单主人可见；沙箱提示出现在确认环节；320px → 1920px 视口无横向溢出、触控目标 ≥32px、正文无小于 10px 的字号、颜色对比度满足 WCAG AA。
 
 实测结果记录见 [`docs/testing.md`](docs/testing.md)。
 
@@ -173,7 +184,7 @@ node scripts/audit-ui.mjs https://your-deployment # 337 项响应式/无障碍�
 4. **单一 Durable Object**：所有写入串行化，正确性极佳，但存在吞吐上限；真实放量前需分片或迁移。
 5. **无 KYC**：没有任何机制验证发布者身份，审核仅为人工核对单据。
 6. **凭证脱敏靠人工**：界面会提示用户自行遮挡敏感信息，不做自动 PII 识别。
-7. **中文界面为预留**：`locale` 字段与文案结构已就位，当前仅英文界面接通。
+7. **只有中英两种语言**：字典以英文原文为 key（`src/lib/i18n.tsx`），新增语言需要扩充字典；服务端生成的通知文案以英文入库，渲染时本地化。
 8. **Demo 数据**：`is_demo = 1` 且界面带「Demo」标记，影响力统计包含它们并在界面说明。
 
 完整的英文说明、部署指南与架构细节见 [`README.md`](README.md)、[`docs/deployment.md`](docs/deployment.md)、[`docs/architecture.md`](docs/architecture.md)。

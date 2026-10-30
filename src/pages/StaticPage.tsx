@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useI18n } from '@/lib/i18n';
 import { ArrowRight, HeartHandshake, Lock, ScanEye, Star } from 'lucide-react';
 import { LinkButton } from '@/components/ui/Button';
 import { Logo } from '@/components/brand/Logo';
@@ -163,29 +164,30 @@ const CONTENT: Record<Kind, { title: string; eyebrow: string; intro: string; sec
 };
 
 export default function StaticPage({ kind }: { kind: Kind }) {
+  const { t } = useI18n();
   const content = CONTENT[kind];
   return (
     <div className="mx-auto max-w-[840px] px-5 py-10 sm:px-8 lg:py-14">
       <div className="flex items-center gap-2.5">
         <Logo size={34} />
-        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink">{content.eyebrow}</span>
+        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink">{t(content.eyebrow)}</span>
       </div>
-      <h1 className="mt-5 text-[30px] font-semibold leading-tight tracking-[-0.035em] sm:text-[38px]">{content.title}</h1>
-      <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-[#5C5862]">{content.intro}</p>
+      <h1 className="mt-5 text-[30px] font-semibold leading-tight tracking-[-0.035em] sm:text-[38px]">{t(content.title)}</h1>
+      <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-[#5C5862]">{t(content.intro)}</p>
 
       <div className="mt-8 space-y-3">
         {content.sections.map((section, i) => (
-          <section key={section.heading} className="rounded-[22px] border border-line bg-white p-5">
+          <section key={t(section.heading)} className="rounded-[22px] border border-line bg-white p-5">
             <div className="flex items-center gap-2.5">
               <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-[11px] font-bold text-brand-ink">
                 {i + 1}
               </span>
-              <h2 className="text-[15px] font-semibold">{section.heading}</h2>
+              <h2 className="text-[15px] font-semibold">{t(section.heading)}</h2>
             </div>
             <div className="mt-2.5 space-y-2.5 pl-9">
               {section.body.map((paragraph, j) => (
                 <p key={j} className="text-[13.5px] leading-relaxed text-[#3A3740]">
-                  {paragraph}
+                  {t(paragraph)}
                 </p>
               ))}
             </div>
@@ -200,7 +202,7 @@ export default function StaticPage({ kind }: { kind: Kind }) {
           rel="noreferrer noopener"
           className="mt-5 inline-flex items-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-[#2c2c2c]"
         >
-          Follow @0xkillcoin on X
+          {t('Follow @0xkillcoin on X')}
           <ArrowRight className="size-3.5" aria-hidden="true" />
         </a>
       )}
@@ -209,18 +211,18 @@ export default function StaticPage({ kind }: { kind: Kind }) {
         <div className="mt-5 flex items-start gap-2.5 rounded-2xl border border-dashed border-[#E4B33D] bg-amber-soft p-4">
           <ScanEye className="mt-0.5 size-4 shrink-0 text-[#9A6600]" aria-hidden="true" />
           <p className="text-[12.5px] leading-relaxed text-[#7A5200]">
-            <strong className="font-semibold">Sandbox active.</strong> No real payment provider is configured. Do not use
-            this deployment to collect money.
+            <strong className="font-semibold">{t('Sandbox active.')}</strong>{' '}
+            {t('No real payment provider is configured. Do not use this deployment to collect money.')}
           </p>
         </div>
       )}
 
       <div className="mt-8 flex flex-wrap gap-2">
         <LinkButton to="/discover" trailing={<ArrowRight className="size-4" aria-hidden="true" />}>
-          Browse bills
+          {t('Browse bills')}
         </LinkButton>
         <LinkButton to="/bills/new" variant="pass">
-          Post a bill
+          {t('Post a bill')}
         </LinkButton>
       </div>
 
@@ -236,7 +238,7 @@ export default function StaticPage({ kind }: { kind: Kind }) {
             className="flex items-center gap-2 rounded-xl border border-line bg-white px-3 py-2.5 text-[12.5px] font-semibold text-[#57534E] transition hover:border-[#CFC9C0] hover:text-ink"
           >
             <item.icon className="size-3.5 text-brand-ink" aria-hidden="true" />
-            {item.label}
+            {t(item.label)}
           </Link>
         ))}
       </div>
