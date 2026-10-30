@@ -142,6 +142,59 @@ test.describe('helping someone', () => {
   });
 });
 
+test.describe('discover feed', () => {
+  /**
+   * Regression: the "keep a buffer" prefetch used to fire whenever the deck had
+   * <= 2 cards and nothing was loading. An empty deck satisfied that condition
+   * forever, so the page re-fetched in a loop and the empty state flickered.
+   */
+  test('exhausting the deck settles on a stable empty state without polling', async ({ page }) => {
+    await register(page, 'deck');
+
+    // Empty the stack server-side so the UI starts from zero cards.
+    const feed = await (await page.request.get('/api/bills/discover?limit=30')).json();
+    expect(feed.bills.length).toBeGreaterThan(0);
+    for (const bill of feed.bills) {
+      await page.request.post('/api/bills/' + bill.id + '/swipe', { data: { action: 'pass' } });
+    }
+
+    const calls = [];
+    page.on('request', (req) => {
+      if (req.url().includes('/api/bills/discover')) calls.push(req.url());
+    });
+
+    await page.goto('/discover');
+    await expect(page.getByText(/whole stack/i)).toBeVisible({ timeout: 30_000 });
+
+    const settled = calls.length;
+    expect(settled).toBeLessThanOrEqual(3);
+
+    // Nothing may fire while the user just sits on the empty state.
+    await page.waitForTimeout(5000);
+    expect(calls.length).toBe(settled);
+  });
+
+  test('swiping the last card lands on the empty state', async ({ page }) => {
+    await register(page, 'lastcard');
+    await page.goto('/discover');
+
+    const pass = page.getByRole('button', { name: 'Pass', exact: true });
+    await expect(pass).toBeEnabled({ timeout: 30_000 });
+
+    // Swipe through whatever is in the deck, with a hard ceiling.
+    for (let i = 0; i < 40; i++) {
+      const remaining = await page.getByRole('button', { name: 'Pass', exact: true }).isDisabled();
+      if (remaining) break;
+      await pass.click({ force: true });
+      await page.waitForTimeout(350);
+      if (await page.getByText(/whole stack/i).isVisible().catch(() => false)) break;
+    }
+
+    await expect(page.getByText(/whole stack/i)).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole('button', { name: /Refresh/i }).first()).toBeVisible();
+  });
+});
+
 test.describe('posting a bill', () => {
   test('completes the five step wizard and lands in review', async ({ page }) => {
     await register(page, 'post');

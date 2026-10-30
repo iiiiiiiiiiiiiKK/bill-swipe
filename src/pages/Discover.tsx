@@ -30,6 +30,8 @@ interface FeedState {
   cursor: string | null;
   loading: boolean;
   error: string | null;
+  /** True only while the server says there is another page behind this one. */
+  hasMore: boolean;
 }
 
 export default function Discover() {
@@ -38,51 +40,76 @@ export default function Discover() {
   const navigate = useNavigate();
   const toast = useToast();
   const reduce = useReducedMotion();
-  const [feed, setFeed] = useState<FeedState>({ bills: [], cursor: null, loading: true, error: null });
+  const [feed, setFeed] = useState<FeedState>({ bills: [], cursor: null, loading: true, error: null, hasMore: false });
   const [history, setHistory] = useState<BillSummary[]>([]);
   const [helpTarget, setHelpTarget] = useState<BillSummary | null>(null);
   const [superHelp, setSuperHelp] = useState(false);
   const loadingRef = useRef(false);
+  const didInit = useRef(false);
+  const feedCursorRef = useRef<string | null>(null);
 
-  const load = useCallback(
-    async (cursor: string | null = null) => {
-      if (loadingRef.current) return;
-      loadingRef.current = true;
-      setFeed((prev) => ({ ...prev, loading: true, error: null }));
-      try {
-        const params = new URLSearchParams({ limit: '12' });
-        if (cursor) params.set('cursor', cursor);
-        const res = await api.get<{ bills: BillSummary[]; remaining: number }>(`/bills/discover?${params.toString()}`);
-        setFeed((prev) => ({
-          bills: cursor ? [...prev.bills, ...res.bills] : res.bills,
-          cursor: res.bills.length > 0 ? (res.bills[res.bills.length - 1]!.createdAt ?? null) : prev.cursor,
+  /**
+   * mode:
+   *   initial — first load for this view
+   *   more    — append the next page
+   *   refresh — start over from the newest bill
+   *
+   * hasMore is only true when the server returned a full page AND still reports
+   * bills remaining. That single flag is what stops the deck from re-fetching
+   * itself forever once the stack is empty.
+   */
+  const load = useCallback(async (mode: 'initial' | 'more' | 'refresh' = 'initial') => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    setFeed((prev) => ({ ...prev, loading: true, error: null }));
+    try {
+      const cursor = mode === 'more' ? (feedCursorRef.current ?? null) : null;
+      const params = new URLSearchParams({ limit: '12' });
+      if (cursor) params.set('cursor', cursor);
+      const res = await api.get<{ bills: BillSummary[]; remaining: number }>(`/bills/discover?${params.toString()}`);
+      const page = res.bills ?? [];
+      setFeed((prev) => {
+        const base = mode === 'more' ? prev.bills : [];
+        const seen = new Set(base.map((bill) => bill.id));
+        const merged = [...base, ...page.filter((bill) => !seen.has(bill.id))];
+        const last = page[page.length - 1];
+        const nextCursor = last ? (last.createdAt ?? prev.cursor) : prev.cursor;
+        feedCursorRef.current = nextCursor;
+        return {
+          bills: merged,
+          cursor: nextCursor,
           loading: false,
           error: null,
-        }));
-      } catch (error) {
-        setFeed((prev) => ({
-          ...prev,
-          loading: false,
-          error: error instanceof ApiRequestError ? error.message : 'Could not load bills right now.',
-        }));
-      } finally {
-        loadingRef.current = false;
-      }
-    },
-    [],
-  );
+          hasMore: page.length > 0 && res.remaining > page.length,
+        };
+      });
+    } catch (error) {
+      setFeed((prev) => ({
+        ...prev,
+        loading: false,
+        hasMore: false,
+        error: error instanceof ApiRequestError ? error.message : 'Could not load bills right now.',
+      }));
+    } finally {
+      loadingRef.current = false;
+    }
+  }, []);
 
+  // First load once authentication has settled.
   useEffect(() => {
-    if (authLoading) return;
-    void load();
+    if (authLoading || didInit.current) return;
+    didInit.current = true;
+    void load('initial');
   }, [authLoading, load]);
 
-  // Keep a small buffer so a card is always ready behind the current one.
+  // Keep a small buffer behind the current card — but only while the server says
+  // there is more to fetch. Without this guard an exhausted deck would re-fetch
+  // in a loop whenever its length stayed <= 2.
   useEffect(() => {
-    if (feed.bills.length <= 2 && !feed.loading && !feed.error) {
-      void load(feed.cursor);
-    }
-  }, [feed.bills.length, feed.loading, feed.error, feed.cursor, load]);
+    if (!feed.hasMore || feed.loading || feed.error) return;
+    if (feed.bills.length > 2) return;
+    void load('more');
+  }, [feed.hasMore, feed.loading, feed.error, feed.bills.length, load]);
 
   const top = feed.bills[0];
   const visible = feed.bills.slice(0, 3);
@@ -188,7 +215,7 @@ export default function Discover() {
           <div className="flex items-center gap-1.5">
             <button
               type="button"
-              onClick={() => void load()}
+              onClick={() => void load('refresh')}
               aria-label={t('Refresh bills')}
               className="inline-flex size-9 items-center justify-center rounded-xl border border-line bg-white text-[#57534E] transition hover:bg-[#FBFAF8]"
             >
@@ -230,7 +257,7 @@ export default function Discover() {
                     little while.
                   </p>
                   <div className="mt-5 flex flex-wrap justify-center gap-2">
-                    <Button onClick={() => void load()} icon={<RefreshCw className="size-4" aria-hidden="true" />}>
+                    <Button onClick={() => void load('refresh')} icon={<RefreshCw className="size-4" aria-hidden="true" />}>
                       {t('Refresh')}
                     </Button>
                     <LinkButton to="/bills/new" variant="pass">
@@ -250,7 +277,7 @@ export default function Discover() {
                   </span>
                   <h2 className="mt-4 text-[18px] font-semibold">{t('Could not load bills')}</h2>
                   <p className="mt-1.5 max-w-xs text-[13.5px] leading-relaxed text-muted">{feed.error}</p>
-                  <Button className="mt-5" onClick={() => void load()} icon={<RefreshCw className="size-4" aria-hidden="true" />}>
+                  <Button className="mt-5" onClick={() => void load('refresh')} icon={<RefreshCw className="size-4" aria-hidden="true" />}>
                     {t('Try again')}
                   </Button>
                 </div>
