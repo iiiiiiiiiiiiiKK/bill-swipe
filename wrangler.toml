@@ -1,0 +1,45 @@
+name = "billswipe"
+main = "src/worker/index.ts"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Static SPA build output (Vite -> ./dist)
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+# SQLite-backed Durable Object: single source of truth for relational data.
+[[durable_objects.bindings]]
+name = "CORE"
+class_name = "Core"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Core"]
+
+# Private receipt storage (originals are never public)
+[[r2_buckets]]
+binding = "RECEIPTS"
+bucket_name = "billswipe-receipts"
+
+[vars]
+ENVIRONMENT = "production"
+PAYMENT_MODE = "sandbox"
+APP_ORIGIN = "https://billswipe.852367856.dpdns.org"
+PLATFORM_FEE_BPS = "0"
+ALLOW_DEMO_SEED = "true"
+
+# This is a public demo on a shared IP-equals-one-network basis, so sign-ups are
+# relaxed a little. Tighten these (Code defaults: register 10/h, login 20/15m)
+# before running a real deployment.
+RL_REGISTER = "60"
+RL_LOGIN = "60"
+RL_PAYMENT_INTENT = "120"
+
+# Production custom domain. Attach through the Cloudflare dashboard or with:
+#   node scripts/attach-domain.mjs
+routes = [
+  { pattern = "billswipe.852367856.dpdns.org", custom_domain = true }
+]

@@ -1,0 +1,18 @@
+{
+  "name": "BILL SWIPE — Swipe a bill, change a life",
+  "short_name": "BILL SWIPE",
+  "description": "Swipe through real bills and choose to help. Someone's bill. Someone's kindness.",
+  "start_url": "/discover",
+  "display": "standalone",
+  "background_color": "#FAF8F5",
+  "theme_color": "#FAF8F5",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

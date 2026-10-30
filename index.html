@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#FAF8F5" />
+    <title>BILL SWIPE — Swipe a bill, change a life</title>
+    <meta
+      name="description"
+      content="BILL SWIPE is a swipe-to-help platform for real, verified bills. Browse someone's story, swipe past what you can't take on, and step in where you can. Swiping never charges you."
+    />
+    <link rel="canonical" href="https://billswipe.852367856.dpdns.org/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="BILL SWIPE" />
+    <meta property="og:title" content="BILL SWIPE — Swipe a bill, change a life" />
+    <meta
+      property="og:description"
+      content="Someone's bill. Someone's kindness. Swipe through real bills and choose to help — you always see the exact total before paying."
+    />
+    <meta property="og:url" content="https://billswipe.852367856.dpdns.org/" />
+    <meta property="og:image" content="https://billswipe.852367856.dpdns.org/og.svg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@0xkillcoin" />
+    <meta name="twitter:creator" content="@0xkillcoin" />
+    <meta name="twitter:title" content="BILL SWIPE — Swipe a bill, change a life" />
+    <meta
+      name="twitter:description"
+      content="A little swipe. A big difference. Browse real bills, help only when you choose."
+    />
+    <meta name="twitter:image" content="https://billswipe.852367856.dpdns.org/og.svg" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --canvas: #faf8f5;
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--canvas);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
+      #root:empty + .boot {
+        display: flex;
+      }
+      .boot {
+        display: none;
+        position: fixed;
+        inset: 0;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div class="boot" aria-hidden="true">
+      <div style="width: 44px; height: 44px; border-radius: 14px; background: linear-gradient(135deg, #8e6bff, #ff718b); opacity: 0.85"></div>
+    </div>
+    <noscript>
+      <div style="max-width: 480px; margin: 15vh auto; padding: 0 24px; text-align: center">
+        <h1 style="font-size: 22px">BILL SWIPE needs JavaScript</h1>
+        <p style="color: #85838d; line-height: 1.6">
+          This app renders its bill feed and payment flows in the browser. Please enable JavaScript to continue.
+        </p>
+      </div>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

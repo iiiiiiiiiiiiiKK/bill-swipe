@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://billswipe.852367856.dpdns.org/sitemap.xml
