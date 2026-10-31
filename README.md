@@ -13,7 +13,7 @@ A swipe-to-help platform for real, verified bills — Tinder-style discovery wit
 [![Live app](https://img.shields.io/badge/live-billswipe.852367856.dpdns.org-7957FF?style=flat-square)](https://billswipe.852367856.dpdns.org)
 [![License: MIT](https://img.shields.io/badge/license-MIT-29C58A?style=flat-square)](LICENSE)
 [![Cloudflare Workers](https://img.shields.io/badge/runs%20on-Cloudflare%20Workers-F5A524?style=flat-square)](https://workers.cloudflare.com/)
-[![Tests](https://img.shields.io/badge/tests-46%20unit%20%C2%B7%2029%20e2e-FF718B?style=flat-square)](docs/testing.md)
+[![Tests](https://img.shields.io/badge/tests-46%20unit%20%C2%B7%2033%20e2e-FF718B?style=flat-square)](docs/testing.md)
 [![Languages](https://img.shields.io/badge/languages-English%20%C2%B7%20%E4%B8%AD%E6%96%87-7957FF?style=flat-square)](#languages)
 [![Follow on X](https://img.shields.io/badge/%F0%9D%95%8F-@0xkillcoin-191919?style=flat-square)](https://x.com/0xkillcoin)
 
@@ -250,7 +250,7 @@ Open <http://127.0.0.1:5173>. The demo dataset (16 fictional bills, 15 people, h
 ```bash
 npm run typecheck   # strict TypeScript, zero errors
 npm test            # 46 unit/integration tests against real SQLite
-npm run test:e2e    # 29 Playwright journeys (desktop Chrome + iPhone 13 / WebKit)
+npm run test:e2e    # 33 Playwright journeys (desktop Chrome + iPhone 13 / WebKit)
 node scripts/smoke.mjs https://your-deployment          # 31 API contract checks
 node scripts/audit-ui.mjs https://your-deployment       # 337 responsive/a11y checks
 node scripts/audit-ui.mjs https://your-deployment zh    # same, in Chinese
@@ -263,7 +263,7 @@ What the suite actually proves:
 - **Authorisation** — normal users get `403` on admin routes; users cannot edit or close other people's bills; anonymous helpers are hidden from the public but visible to the bill owner.
 - **UI honesty** — the sandbox banner appears at the confirmation step; success only renders after the server responds.
 - **Responsive quality** — zero horizontal overflow, ≥32 px tap targets, no sub-10 px interface text, and WCAG AA contrast across 320 → 1920 px viewports.
-- **Real journeys** — register → swipe → choose amount → confirm → success, plus the five-step posting wizard, the admin review queue and **switching the entire UI to Chinese and back**.
+- **Real journeys** — register → swipe → choose amount → confirm → success, plus the five-step posting wizard, the admin review queue, **switching the entire UI to Chinese and back**, and an exhausted deck that stops fetching instead of polling.
 - **Translation coverage** — every route is crawled with Chinese active and any residual English copy is reported; the current build reports **0 untranslated strings**. A unit test also guards the dictionary itself (no empty entries, placeholder parity between languages).
 
 Results from the recorded run are in [`docs/testing.md`](docs/testing.md).

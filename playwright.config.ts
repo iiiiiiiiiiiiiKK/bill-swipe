@@ -14,6 +14,11 @@ export default defineConfig({
     baseURL,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    // The app auto-selects the UI language from navigator.language. These specs
+    // assert English copy, so pin the browser locale instead of inheriting the
+    // host machine's (a zh-CN host would otherwise render the whole UI in
+    // Chinese and every English selector would miss).
+    locale: 'en-US',
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },

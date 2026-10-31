@@ -253,8 +253,9 @@ export default function Discover() {
                   </span>
                   <h2 className="mt-4 text-[19px] font-semibold">{t('That\'s the whole stack')}</h2>
                   <p className="mt-1.5 max-w-xs text-[13.5px] leading-relaxed text-muted">
-                    You have seen every bill available right now. New ones appear as they pass review — check back in a
-                    little while.
+                    {t(
+                      'You have seen every bill available right now. New ones appear as they pass review — check back in a little while.',
+                    )}
                   </p>
                   <div className="mt-5 flex flex-wrap justify-center gap-2">
                     <Button onClick={() => void load('refresh')} icon={<RefreshCw className="size-4" aria-hidden="true" />}>
@@ -265,7 +266,8 @@ export default function Discover() {
                     </LinkButton>
                   </div>
                   <p className="mt-4 text-[11.5px] text-[#736E66]">
-                    Undo still works — press <kbd className="rounded border border-line px-1">Z</kbd> to go back.
+                    {t('Undo still works — press')} <kbd className="rounded border border-line px-1">Z</kbd>{' '}
+                    {t('to go back.')}
                   </p>
                 </div>
               )}
@@ -276,7 +278,7 @@ export default function Discover() {
                     <X className="size-6 text-[#C02444]" aria-hidden="true" />
                   </span>
                   <h2 className="mt-4 text-[18px] font-semibold">{t('Could not load bills')}</h2>
-                  <p className="mt-1.5 max-w-xs text-[13.5px] leading-relaxed text-muted">{feed.error}</p>
+                  <p className="mt-1.5 max-w-xs text-[13.5px] leading-relaxed text-muted">{t(feed.error)}</p>
                   <Button className="mt-5" onClick={() => void load('refresh')} icon={<RefreshCw className="size-4" aria-hidden="true" />}>
                     {t('Try again')}
                   </Button>

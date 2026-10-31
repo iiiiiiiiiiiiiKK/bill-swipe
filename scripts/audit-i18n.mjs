@@ -93,6 +93,62 @@ for (const route of ROUTES) {
   if (untranslated.length > 0) findings[route] = untranslated;
 }
 
+// --- UI states that need synthetic data -------------------------------------
+// The exhausted deck and the error state never appear on a fresh visit, so they
+// are exercised with stubbed responses: those branches also carry copy.
+const STATE_CASES = [
+  {
+    name: '/discover (deck exhausted)',
+    route: '/discover',
+    stub: { bills: [], remaining: 0 },
+  },
+  {
+    name: '/discover (load error)',
+    route: '/discover',
+    stub: null,
+    failRequests: true,
+  },
+];
+
+for (const testCase of STATE_CASES) {
+  await page.route('**/api/bills/discover*', async (route) => {
+    if (testCase.failRequests) {
+      await route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: { code: 'x', message: 'x' } }) });
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(testCase.stub) });
+  });
+  await page.goto(`${base}${testCase.route}`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(1200);
+
+  const texts = await page.evaluate(() => {
+    const out = [];
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      const text = (node.textContent ?? '').replace(/\s+/g, ' ').trim();
+      if (!text) continue;
+      const el = node.parentElement;
+      if (!el) continue;
+      const style = getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden') continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) continue;
+      out.push(text);
+    }
+    return out;
+  });
+
+  const untranslated = [...new Set(texts)].filter((text) => {
+    if (text.length < 2) return false;
+    if (ALLOW.some((re) => re.test(text))) return false;
+    const words = text.split(' ').filter((w) => /[A-Za-z]{2,}/.test(w));
+    return words.length >= 2 || /^[A-Za-z]{4,}\.?( [A-Za-z]{2,})?$/.test(text);
+  });
+  if (untranslated.length > 0) findings[testCase.name] = untranslated;
+  await page.unroute('**/api/bills/discover*');
+}
+
 await browser.close();
 
 let total = 0;

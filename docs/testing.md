@@ -9,10 +9,10 @@ Recorded against the live deployment `https://billswipe.852367856.dpdns.org` and
 | TypeScript (strict) | `npm run typecheck` | **0 errors** |
 | Unit + integration | `npm test` | **46 / 46 passed** |
 | API contract (black box) | `node scripts/smoke.mjs <url>` | **31 / 31 passed** |
-| End-to-end journeys | `npm run test:e2e` | **29 passed, 1 skipped** (desktop Chrome + iPhone 13 / WebKit) |
+| End-to-end journeys | `npm run test:e2e` | **33 passed, 1 skipped** (desktop Chrome + iPhone 13 / WebKit) |
 | Responsive / a11y / contrast (EN) | `node scripts/audit-ui.mjs <url> en` | **337 / 337 passed** across 8 viewports |
 | Responsive / a11y / contrast (中文) | `node scripts/audit-ui.mjs <url> zh` | **337 / 337 passed** across 8 viewports |
-| Translation coverage | `node scripts/audit-i18n.mjs <url>` | **0 untranslated strings** across 13 routes |
+| Translation coverage | `node scripts/audit-i18n.mjs <url>` | **0 untranslated strings** across 13 routes + 2 synthetic UI states |
 | Production build | `npm run build` | Success (main chunk ≈ 96 kB gzip) |
 
 ## Unit and integration tests — 46 passing
@@ -56,7 +56,7 @@ ok admin login · ok admin overview · ok admin pending queue · ok admin approv
 ok audit log written · ok admin refund · ok refund decrements raised (2000 → 1000)
 ```
 
-## End-to-end journeys — 29 passed, 1 skipped
+## End-to-end journeys — 33 passed, 1 skipped
 
 Playwright, running against the live URL in two projects (desktop Chrome 1440×900 and iPhone 13 / WebKit).
 
@@ -70,6 +70,8 @@ Playwright, running against the live URL in two projects (desktop Chrome 1440×9
 | **Help flow** | register → pass → help → `$10` → continue → confirm screen (fee + total + sandbox notice) → confirm → success state → close |
 | Keyboard | `←` advances the deck (desktop only; skipped on mobile) |
 | **Language switcher** | switch to Chinese → nav/hero/footer flip, `html[lang]=zh-CN`, survives reload, Discover renders in Chinese, switch back to English |
+| **Exhausted deck** | empty deck makes at most 3 feed requests, then none for 5 s, and the empty state stays put |
+| **Last card** | swiping the final card lands on the same empty state with a working Refresh |
 | **Post a bill** | five-step wizard → submit → redirect to the bill → status "In review" |
 | Validation | wizard blocks progress without a 60-character story |
 | Admin | login → dashboard counters → review queue with Approve controls → audit tab |
@@ -110,6 +112,38 @@ Two categories are translated by design rather than by lookup:
 
 - **Demo fixtures** (16 bills, helper names, sample comments) ship in both languages in `src/lib/demoContent.ts` and the dictionary.
 - **Server-generated copy** (notifications, community headlines) is stored in English and recomposed client-side from structured fields, so the database stays language-agnostic.
+
+## Regression: the deck that would not stop loading
+
+Found in review, reproduced, fixed and now guarded by tests.
+
+**Symptom.** After swiping through every bill, Discover never settled: the empty state flickered between a skeleton and the card, and the browser kept calling `/api/bills/discover` forever.
+
+**Cause.** The "keep a buffer" prefetch ran whenever the deck held ≤ 2 cards and nothing was loading:
+
+```ts
+if (feed.bills.length <= 2 && !feed.loading && !feed.error) void load(feed.cursor);
+```
+
+An empty deck (0 ≤ 2) satisfies that condition permanently. Each response set `loading` true → false, which re-triggered the effect, which fetched again. Worse, the cursor never advanced, so every request re-queried the same page.
+
+**Fix.** `FeedState` now carries `hasMore`, derived from the page size and the server's cursor-relative `remaining` count. The prefetch effect is gated on it, `load()` takes an explicit mode (`initial` | `more` | `refresh`), pages are de-duplicated by id, and the initial load is guarded against remounts.
+
+**Measured before/after** (`node scripts/loop-compare.mjs`, which serves a built bundle next to a stub API that always returns an empty page and counts requests for 6 s):
+
+| Bundle | Feed requests in 6 s | Empty state |
+| --- | --- | --- |
+| before the fix | **2078** | flickering |
+| after the fix | **1** | stable |
+
+The script builds two bundles (`dist` and `dist-old`) and fails if the old one does not loop or the new one stops:
+
+```bash
+npx vite build && cp -r dist dist-old   # then build the current tree into dist
+node scripts/loop-compare.mjs
+```
+
+While reproducing it, the same probe surfaced a second defect: the exhausted-state paragraph and the `Undo still works — press Z` hint were never wrapped in `t()`. `scripts/audit-i18n.mjs` now stubs an empty page and a failing request so those branches are audited too — which is how the miss was caught rather than shipped.
 
 ## What is *not* covered
 

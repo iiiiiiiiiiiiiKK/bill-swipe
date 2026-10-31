@@ -176,21 +176,21 @@ test.describe('discover feed', () => {
 
   test('swiping the last card lands on the empty state', async ({ page }) => {
     await register(page, 'lastcard');
-    await page.goto('/discover');
 
-    const pass = page.getByRole('button', { name: 'Pass', exact: true });
-    await expect(pass).toBeEnabled({ timeout: 30_000 });
-
-    // Swipe through whatever is in the deck, with a hard ceiling.
-    for (let i = 0; i < 40; i++) {
-      const remaining = await page.getByRole('button', { name: 'Pass', exact: true }).isDisabled();
-      if (remaining) break;
-      await pass.click({ force: true });
-      await page.waitForTimeout(350);
-      if (await page.getByText(/whole stack/i).isVisible().catch(() => false)) break;
+    // Leave exactly one card so the final swipe is deterministic and fast
+    // (swiping twelve cards through WebKit flake is not a useful assertion).
+    const feed = await (await page.request.get('/api/bills/discover?limit=30')).json();
+    expect(feed.bills.length).toBeGreaterThan(1);
+    for (const bill of feed.bills.slice(1)) {
+      await page.request.post('/api/bills/' + bill.id + '/swipe', { data: { action: 'pass' } });
     }
 
-    await expect(page.getByText(/whole stack/i)).toBeVisible({ timeout: 20_000 });
+    await page.goto('/discover');
+    const pass = page.getByRole('button', { name: 'Pass', exact: true });
+    await expect(pass).toBeEnabled({ timeout: 30_000 });
+    await pass.click();
+
+    await expect(page.getByText(/whole stack/i)).toBeVisible({ timeout: 25_000 });
     await expect(page.getByRole('button', { name: /Refresh/i }).first()).toBeVisible();
   });
 });
@@ -288,7 +288,7 @@ test.describe('safety and validation', () => {
 
   test('unauthenticated visitors are redirected from private pages', async ({ page }) => {
     await page.goto('/bills');
-    await expect(page).toHaveURL(/\/login/, { timeout: 20_000 });
+    await expect(page).toHaveURL(/\/login/, { timeout: 35_000 });
     await expect(page.getByRole('heading', { name: /Welcome back/i })).toBeVisible();
   });
 

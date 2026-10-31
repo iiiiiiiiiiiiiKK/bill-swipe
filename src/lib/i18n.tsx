@@ -781,6 +781,8 @@ const zh: Record<string, string> = {
   "Someone's bill. Someone's kindness. Swipe to discover real stories, then choose to help — never automatically.":
     '一张账单，一份善意。滑动发现真实故事，帮助永远由你决定 —— 绝不自动扣款。',
   'BILL SWIPE Team': 'BILL SWIPE 团队',
+  'Undo still works — press': '撤销仍然可用 —— 按',
+  'to go back.': '返回。',
   'Total due': '应付总额',
   REF: '编号',
   'Rent statement': '房租账单',
