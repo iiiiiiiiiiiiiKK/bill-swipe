@@ -158,11 +158,11 @@ export default function BillDetailPage() {
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <CalendarDays className="size-3.5" aria-hidden="true" />
-                      Due {formatDate(bill.dueDate)}
+                      {t('Due {date}', { date: formatDate(bill.dueDate) })}
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <Clock3 className="size-3.5" aria-hidden="true" />
-                      Posted {timeAgo(bill.createdAt)}
+                      {t('{label} {when}', { label: t('Posted'), when: timeAgo(bill.createdAt) })}
                     </span>
                   </div>
                 </div>
@@ -185,9 +185,9 @@ export default function BillDetailPage() {
                 </div>
                 <ProgressBar value={progress} tone={remaining === 0 ? 'mint' : 'brand'} className="mt-3 h-2" />
                 <div className="mt-2 flex items-center justify-between text-[12px]">
-                  <span className="font-semibold">{progress}% funded</span>
+                  <span className="font-semibold">{t('{n}% funded', { n: progress })}</span>
                   <span className="text-muted">
-                    {remaining > 0 ? `${money(remaining, bill.currency)} to go` : 'Goal reached 🎉'}
+                    {remaining > 0 ? t('{amount} to go', { amount: money(remaining, bill.currency) }) : t('Goal reached 🎉')}
                   </span>
                 </div>
               </div>
@@ -205,10 +205,14 @@ export default function BillDetailPage() {
                 <div className="mt-5 flex items-start gap-2.5 rounded-2xl border border-dashed border-line bg-[#FBFAF8] p-3.5">
                   <ShieldCheck className="mt-0.5 size-4 shrink-0 text-[#57534E]" aria-hidden="true" />
                   <div className="min-w-0">
-                    <p className="text-[12.5px] font-semibold">Receipt on file: {bill.receipt.fileName}</p>
+                    <p className="text-[12.5px] font-semibold">
+                      {t('Receipt on file: {name}', { name: bill.receipt.fileName })}
+                    </p>
                     <p className="mt-0.5 text-[11.5px] leading-relaxed text-muted">
-                      Uploaded {timeAgo(bill.receipt.uploadedAt)} · {Math.round(bill.receipt.size / 1024)} KB. The original
-                      stays private and is only visible to moderators; a redacted preview is shown publicly.
+                      {t(
+                        'Uploaded {when} · {size} KB. The original stays private and is only visible to moderators; a redacted preview is shown publicly.',
+                        { when: timeAgo(bill.receipt.uploadedAt), size: Math.round(bill.receipt.size / 1024) },
+                      )}
                     </p>
                   </div>
                 </div>
@@ -245,10 +249,10 @@ export default function BillDetailPage() {
           <section className="rounded-[22px] border border-line bg-white p-5 shadow-soft">
             <div className="flex items-center justify-between">
               <h2 className="text-[14px] font-semibold">
-                Helpers {bill.helpers.length > 0 && <span className="text-muted">· {bill.helpers.length}</span>}
+                {t('Helpers')} {bill.helpers.length > 0 && <span className="text-muted">· {bill.helpers.length}</span>}
               </h2>
               {bill.helperCount > bill.helpers.length && (
-                <span className="text-[11.5px] text-muted">showing latest {bill.helpers.length}</span>
+                <span className="text-[11.5px] text-muted">{t('showing latest {n}', { n: bill.helpers.length })}</span>
               )}
             </div>
             {bill.helpers.length === 0 ? (
@@ -260,17 +264,17 @@ export default function BillDetailPage() {
                 {bill.helpers.map((record) => (
                   <li key={record.id} className="flex items-center gap-3 py-2.5">
                     <Avatar
-                      name={record.helper?.displayName ?? 'Anonymous helper'}
+                      name={record.helper?.displayName ?? t('Anonymous helper')}
                       seed={record.helper?.avatarSeed ?? record.id}
                       src={record.helper?.avatarUrl}
                       size={32}
                     />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[13px] font-semibold">
-                        {record.helper?.displayName ?? 'Anonymous helper'}
+                        {record.helper?.displayName ?? t('Anonymous helper')}
                       </p>
                       <p className="truncate text-[11.5px] text-muted">
-                        {record.message ?? (record.isAnonymous ? 'Chose to stay anonymous' : 'Sent help')}
+                        {record.message ?? (record.isAnonymous ? t('Chose to stay anonymous') : t('Sent help'))}
                       </p>
                     </div>
                     <div className="shrink-0 text-right">
@@ -290,7 +294,9 @@ export default function BillDetailPage() {
               <Avatar name={bill.owner.displayName} seed={bill.owner.avatarSeed} src={bill.owner.avatarUrl} size={46} />
               <div className="min-w-0">
                 <p className="truncate text-[14.5px] font-semibold">{bill.owner.displayName}</p>
-                <p className="truncate text-[12px] text-muted">@{bill.owner.username}</p>
+                {bill.owner.username !== 'private' ? (
+                  <p className="truncate text-[12px] text-muted">@{bill.owner.username}</p>
+                ) : null}
               </div>
             </div>
             {bill.owner.bio && <p className="mt-3 text-[12.5px] leading-relaxed text-[#5C5862]">{bill.owner.bio}</p>}
@@ -303,8 +309,8 @@ export default function BillDetailPage() {
                   </LinkButton>
                   <p className="text-center text-[11px] leading-relaxed text-[#736E66]">
                     {bill.viewer.canEdit
-                      ? 'You can still edit while no help has arrived.'
-                      : 'Amounts and recipients are locked once help has been received.'}
+                      ? t('You can still edit while no help has arrived.')
+                      : t('Amounts and recipients are locked once help has been received.')}
                   </p>
                 </>
               ) : (
@@ -323,12 +329,16 @@ export default function BillDetailPage() {
                     disabled={!bill.viewer.canHelp}
                     icon={<HeartHandshake className="size-[18px]" aria-hidden="true" />}
                   >
-                    {bill.viewer.canHelp ? 'Help this person' : remaining === 0 ? 'Fully funded' : 'Not accepting help'}
+                    {bill.viewer.canHelp
+                      ? t('Help this person')
+                      : remaining === 0
+                        ? t('Fully funded')
+                        : t('Not accepting help')}
                   </Button>
                   {user && bill.viewer.hasHelped && (
                     <p className="flex items-center justify-center gap-1.5 text-[11.5px] font-semibold text-[#0F7A52]">
                       <CheckCircle2 className="size-3.5" aria-hidden="true" />
-                      You already helped {money(bill.viewer.helpedAmount, bill.currency)}
+                      {t('You already helped {amount}', { amount: money(bill.viewer.helpedAmount, bill.currency) })}
                     </p>
                   )}
                   <div className="grid grid-cols-2 gap-2">
@@ -352,8 +362,7 @@ export default function BillDetailPage() {
             <div className="mt-4 flex items-start gap-2 rounded-xl bg-[#FAF8F5] px-3 py-2.5">
               <Info className="mt-0.5 size-3.5 shrink-0 text-muted" aria-hidden="true" />
               <p className="text-[11px] leading-relaxed text-muted">
-                Swiping or tapping Help never charges you. You confirm an exact amount, fee and total before any
-                payment is created.
+                {t('Swiping or tapping Help never charges you. You confirm an exact amount, fee and total before any payment is created.')}
               </p>
             </div>
           </section>

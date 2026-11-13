@@ -110,7 +110,7 @@ export default function MyBills() {
     <div>
       <PageHeader
         title={t('My bills')}
-        description="Everything you have posted, from review to fully funded."
+        description={t('Everything you have posted, from review to fully funded.')}
         action={
           <LinkButton to="/bills/new" icon={<Plus className="size-4" aria-hidden="true" />}>
             {t('Post a bill')}
@@ -253,8 +253,8 @@ export default function MyBills() {
                       )}
                     </div>
                     <p className="mt-1.5 text-center text-[10px] text-[#7C776F]">
-                      Posted {timeAgo(bill.createdAt)}
-                      {locked && ' · locked (help received)'}
+                      {t('Posted {when}', { when: timeAgo(bill.createdAt) })}
+                      {locked && t('· locked (help received)')}
                     </p>
                   </div>
                 </li>

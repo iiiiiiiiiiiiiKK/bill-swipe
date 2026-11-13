@@ -193,21 +193,21 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
           className="inline-flex items-center gap-1.5 rounded-xl px-1 py-1 text-[13px] font-semibold text-[#57534E] transition hover:text-ink"
         >
           <ArrowLeft className="size-4" aria-hidden="true" />
-          {step === 1 ? 'Cancel' : 'Back'}
+          {step === 1 ? t('Cancel') : t('Back')}
         </button>
         <Pill tone="neutral">
-          Step {step} of 5
+          {t('Step {step} of {total}', { step, total: STEPS.length })}
         </Pill>
       </div>
 
       <h1 className="mt-4 text-[26px] font-semibold leading-tight tracking-[-0.03em]">
-        {edit ? 'Edit your bill' : 'Post a bill'}
+        {edit ? t('Edit your bill') : t('Post a bill')}
       </h1>
       <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">
-        Specific beats dramatic. Tell people exactly what the money covers and upload the document that shows it.
+        {t('Specific beats dramatic. Tell people exactly what the money covers and upload the document that shows it.')}
       </p>
 
-      <ol className="mt-5 flex items-center gap-1.5" aria-label="Progress">
+      <ol className="mt-5 flex items-center gap-1.5" aria-label={t('Progress')}>
         {STEPS.map((label, i) => {
           const index = (i + 1) as Step;
           const done = step > index;
@@ -290,7 +290,7 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
                   onChange={setTitle}
                   placeholder={t('Groceries for the week until my first paycheck')}
                   error={fields.title}
-                  hint={`${title.length}/90 characters`}
+                  hint={t('{n}/90 characters', { n: title.length })}
                   required
                 />
                 <div className="grid gap-3 sm:grid-cols-[1fr_112px]">
@@ -343,7 +343,7 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
                     value={paid}
                     onChange={(v) => setPaid(v.replace(/[^0-9.]/g, ''))}
                     placeholder="0.00"
-                    hint="Money you already put toward this bill."
+                    hint={t('Money you already put toward this bill.')}
                   />
                   <div>
                     <label htmlFor="bill-due" className="mb-1.5 block text-[12px] font-semibold text-[#57534E]">
@@ -415,7 +415,7 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
                   {busy ? (
                     <>
                       <Loader2 className="size-7 animate-spin text-brand-ink" aria-hidden="true" />
-                      <span className="mt-2.5 text-[13px] font-semibold">Uploading…</span>
+                      <span className="mt-2.5 text-[13px] font-semibold">{t('Uploading…')}</span>
                     </>
                   ) : file ? (
                     <>
@@ -424,7 +424,7 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
                       </span>
                       <span className="mt-2.5 text-[13px] font-semibold">{file.name}</span>
                       <span className="mt-0.5 text-[11.5px] text-muted">
-                        {(file.size / 1024).toFixed(0)} KB · {receiptId ? 'stored privately' : 'not saved yet'}
+                        {(file.size / 1024).toFixed(0)} KB · {receiptId ? t('stored privately') : t('not saved yet')}
                       </span>
                       <span className="mt-2 text-[11.5px] font-semibold text-brand-ink">{t('Replace file')}</span>
                     </>
@@ -441,13 +441,17 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
 
                 {file?.preview && (
                   <div className="mt-3 overflow-hidden rounded-2xl border border-line">
-                    <img src={file.preview} alt="Receipt preview" className="max-h-64 w-full object-contain bg-[#FAF8F5]" />
+                    <img
+                      src={file.preview}
+                      alt={t('Receipt preview')}
+                      className="max-h-64 w-full object-contain bg-[#FAF8F5]"
+                    />
                   </div>
                 )}
 
                 <p className="mt-3 flex items-start gap-1.5 text-[11.5px] leading-relaxed text-[#736E66]">
                   <ShieldCheck className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-                  You can submit without a receipt, but bills with a clear document are approved far more often.
+                  {t('You can submit without a receipt, but bills with a clear document are approved far more often.')}
                 </p>
               </section>
             )}
@@ -456,8 +460,9 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
               <section>
                 <h2 className="text-[16px] font-semibold">{t('Tell your story')}</h2>
                 <p className="mt-1 text-[12.5px] leading-relaxed text-muted">
-                  People connect with people, not just numbers. What happened, why you need help, and how the money
-                  will be used.
+                  {t(
+                    'People connect with people, not just numbers. What happened, why you need help, and how the money will be used.',
+                  )}
                 </p>
                 <textarea
                   value={story}
@@ -465,19 +470,19 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
                   rows={10}
                   aria-describedby="story-hint"
                   className="mt-3 w-full resize-y rounded-2xl border border-line bg-white px-3.5 py-3 text-[14px] leading-relaxed outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15"
-                  placeholder="I just started a new job, but my first paycheck won't arrive until next week. Between rent and bus fare there is nothing left for food…"
+                  placeholder={t("I just started a new job, but my first paycheck won't arrive until next week. Between rent and bus fare there is nothing left for food…")}
                 />
                 <div className="mt-1.5 flex items-center justify-between text-[11.5px]">
                   <span id="story-hint" className={storyWords < 20 ? 'text-[#A96A00]' : 'text-[#0F7A52]'}>
-                    {storyWords} words · {story.length}/2000 characters
+                    {t('words')} · {t('{n}/2000 characters', { n: story.length })}
                   </span>
                   <span className="text-[#736E66]">{t('Minimum 60 characters')}</span>
                 </div>
                 <div className="mt-3 grid gap-2 sm:grid-cols-3">
                   {[
-                    { q: 'What happened?', body: 'One or two sentences of context.' },
-                    { q: 'Why this amount?', body: 'Show how the total adds up.' },
-                    { q: 'How will it help?', body: 'What changes once it is covered.' },
+                    { q: t('What happened?'), body: t('One or two sentences of context.') },
+                    { q: t('Why this amount?'), body: t('Show how the total adds up.') },
+                    { q: t('How will it help?'), body: t('What changes once it is covered.') },
                   ].map((tip) => (
                     <div key={tip.q} className="rounded-xl border border-line bg-white p-2.5">
                       <p className="text-[11.5px] font-semibold">{tip.q}</p>
@@ -510,7 +515,7 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
                       <Pill tone="amber">{t('Pending review')}</Pill>
                       {receiptId ? <Pill tone="mint">{t('Receipt attached')}</Pill> : <Pill tone="neutral">{t('No receipt')}</Pill>}
                     </div>
-                    <h3 className="mt-2 text-[16px] font-semibold leading-snug">{title || 'Untitled bill'}</h3>
+                    <h3 className="mt-2 text-[16px] font-semibold leading-snug">{title || t('Untitled bill')}</h3>
                     <p className="mt-1 line-clamp-4 whitespace-pre-line text-[13px] leading-relaxed text-[#5C5862]">{story}</p>
                     <div className="mt-3 flex items-baseline justify-between border-t border-line pt-2.5">
                       <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#736E66]">{t('Asking for')}</span>
@@ -521,9 +526,9 @@ export default function NewBill({ edit = false }: { edit?: boolean }) {
 
                 <ul className="mt-3 space-y-1.5">
                   {[
-                    'You can edit this bill until it receives its first payment.',
-                    'Once help arrives, the amount and recipient are locked.',
-                    'You can post updates so helpers see how it is going.',
+                    t('You can edit this bill until it receives its first payment.'),
+                    t('Once help arrives, the amount and recipient are locked.'),
+                    t('You can post updates so helpers see how it is going.'),
                   ].map((line) => (
                     <li key={line} className="flex items-start gap-2 text-[12px] leading-relaxed text-[#5C5862]">
                       <Check className="mt-0.5 size-3.5 shrink-0 text-mint" aria-hidden="true" />

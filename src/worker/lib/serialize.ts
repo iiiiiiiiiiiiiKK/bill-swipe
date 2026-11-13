@@ -26,7 +26,8 @@ export function excerpt(text: string, max = 150): string {
 }
 
 export interface BillSummaryExtras {
-  owner: UserRow;
+  /** Already-resolved public identity (see queries.publicIdentity). */
+  owner: PublicUser | UserRow;
   helperCount: number;
   viewerAction?: string | null;
 }
@@ -50,7 +51,7 @@ export function toBillSummary(row: BillRow, extras: BillSummaryExtras): BillSumm
     createdAt: row.created_at,
     helperCount: extras.helperCount,
     isDemo: row.is_demo === 1,
-    owner: toPublicUser(extras.owner),
+    owner: 'display_name' in extras.owner ? toPublicUser(extras.owner) : extras.owner,
     viewerAction: (extras.viewerAction as BillSummary['viewerAction']) ?? null,
   };
 }

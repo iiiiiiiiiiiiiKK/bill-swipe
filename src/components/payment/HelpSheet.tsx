@@ -42,7 +42,7 @@ export function HelpSheet({
   superHelp?: boolean;
   onClose: () => void;
 }) {
-  const { t, lang } = useI18n();
+  const { t, tp, lang } = useI18n();
   const bill = rawBill ? localizeDemoBill(rawBill, lang) : rawBill;
   const { user } = useAuth();
   const toast = useToast();
@@ -139,14 +139,14 @@ export function HelpSheet({
         >
           <button
             type="button"
-            aria-label="Close payment panel"
+            aria-label={t('Close payment panel')}
             onClick={onClose}
             className="absolute inset-0 bg-[#191919]/45 backdrop-blur-[2px]"
           />
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-label={`Help ${bill.owner.displayName}`}
+            aria-label={t('Help {name}', { name: bill.owner.displayName })}
             initial={{ y: '100%', opacity: 1 }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -161,13 +161,17 @@ export function HelpSheet({
                     type="button"
                     onClick={() => setStep('amount')}
                     className="-ml-1 rounded-lg p-1.5 text-[#57534E] transition hover:bg-black/5"
-                    aria-label="Back to amount"
+                    aria-label={t('Back to amount')}
                   >
                     <ChevronLeft className="size-4" aria-hidden="true" />
                   </button>
                 )}
                 <p className="text-[14px] font-semibold">
-                  {step === 'success' ? 'All done' : step === 'confirm' || step === 'processing' ? 'Confirm payment' : 'Choose an amount'}
+                  {step === 'success'
+              ? t('All done')
+              : step === 'confirm' || step === 'processing'
+                ? t('Confirm payment')
+                : t('Choose an amount')}
                 </p>
               </div>
               <button
@@ -204,8 +208,9 @@ export function HelpSheet({
                     <div className="mt-3 flex items-start gap-2 rounded-xl bg-brand-soft px-3 py-2.5">
                       <Heart className="mt-0.5 size-3.5 shrink-0 text-brand-ink" aria-hidden="true" />
                       <p className="text-[12px] leading-relaxed text-brand-ink">
-                        Super Help opens this panel first for people you want to prioritise. It still never pays
-                        automatically.
+                        {t(
+                          'Super Help opens this panel first for people you want to prioritise. It still never pays automatically.',
+                        )}
                       </p>
                     </div>
                   )}
@@ -251,7 +256,10 @@ export function HelpSheet({
                       />
                     </div>
                     <p id="amount-hint" className="mt-1.5 text-[11.5px] text-muted">
-                      Between $1.00 and {formatMoney(Math.max(remaining, 100))}. Your kindness makes a difference.
+                      {t('Between {min} and {max}. Your kindness makes a difference.', {
+                        min: formatMoney(100),
+                        max: formatMoney(Math.max(remaining, 100)),
+                      })}
                     </p>
                   </div>
 
@@ -308,7 +316,11 @@ export function HelpSheet({
                   <div className="rounded-2xl border border-line p-3.5">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#736E66]">{t('You are helping')}</p>
                     <div className="mt-2 flex items-center gap-2.5">
-                      <Avatar name={anonymous ? 'Anonymous helper' : user?.displayName ?? 'You'} seed={user?.avatarSeed} size={36} />
+                      <Avatar
+                        name={anonymous ? t('Anonymous helper') : user?.displayName ?? t('You')}
+                        seed={user?.avatarSeed}
+                        size={36}
+                      />
                       <div className="min-w-0">
                         <p className="truncate text-[13.5px] font-semibold">{bill.owner.displayName}</p>
                         <p className="truncate text-[11.5px] text-muted">{bill.title}</p>
@@ -324,7 +336,7 @@ export function HelpSheet({
                     <div className="flex items-center justify-between">
                       <dt className="text-[#5C5862]">{t('Platform fee')}</dt>
                       <dd className="money-tabular font-semibold">
-                        {(receiptTotal?.fee ?? fee) === 0 ? 'Free' : formatMoney(receiptTotal?.fee ?? fee)}
+                        {(receiptTotal?.fee ?? fee) === 0 ? t('Free') : formatMoney(receiptTotal?.fee ?? fee)}
                       </dd>
                     </div>
                     <div className="flex items-center justify-between border-t border-line pt-2">
@@ -376,7 +388,9 @@ export function HelpSheet({
                     disabled={processing}
                     trailing={processing ? <Loader2 className="size-4 animate-spin" /> : undefined}
                   >
-                    {processing ? 'Processing…' : `Confirm ${formatMoney(receiptTotal?.total ?? total)}`}
+                    {processing
+                      ? t('Processing…')
+                      : t('Confirm {amount}', { amount: formatMoney(receiptTotal?.total ?? total) })}
                   </Button>
                   <button
                     type="button"
@@ -408,22 +422,32 @@ export function HelpSheet({
                   </motion.div>
                   <h2 className="mt-4 text-[20px] font-semibold tracking-[-0.02em]">{t('You just made someone\'s day. ❤️')}</h2>
                   <p className="mx-auto mt-1.5 max-w-xs text-[13.5px] leading-relaxed text-muted">
-                    {formatMoney(receiptTotal?.amount ?? effectiveAmount)} landed on &quot;{bill.title}&quot;. Both of you
-                    will see it in notifications.
+                    {t('{amount} landed on "{title}". Both of you will see it in notifications.', {
+                      amount: formatMoney(receiptTotal?.amount ?? effectiveAmount),
+                      title: bill.title,
+                    })}
                   </p>
 
                   <div className="mt-4 rounded-2xl border border-line p-3.5 text-left">
                     <div className="flex items-center justify-between text-[12px]">
                       <span className="font-semibold text-[#0F7A52]">
-                        {percent(bill.raisedAmount + (receiptTotal?.amount ?? 0), bill.targetAmount)}% funded
+                        {t('{n}% funded', {
+                          n: percent(bill.raisedAmount + (receiptTotal?.amount ?? 0), bill.targetAmount),
+                        })}
                       </span>
-                      <span className="text-muted">{bill.helperCount + 1} helpers</span>
+                      <span className="text-muted">
+                    {tp(bill.helperCount + 1, '{n} helper', '{n} helpers')}
+                  </span>
                     </div>
                     <ProgressBar value={percent(bill.raisedAmount + (receiptTotal?.amount ?? 0), bill.targetAmount)} tone="mint" className="mt-2" />
                     <p className="mt-2 text-[11.5px] text-muted">
                       {Math.max(0, bill.targetAmount - bill.raisedAmount - (receiptTotal?.amount ?? 0)) > 0
-                        ? `${formatMoney(Math.max(0, bill.targetAmount - bill.raisedAmount - (receiptTotal?.amount ?? 0)))} still needed.`
-                        : 'This bill is now fully funded.'}
+                        ? t('{n} still needed.', {
+                            n: formatMoney(
+                              Math.max(0, bill.targetAmount - bill.raisedAmount - (receiptTotal?.amount ?? 0)),
+                            ),
+                          })
+                        : t('This bill is now fully funded.')}
                     </p>
                   </div>
 
@@ -438,12 +462,12 @@ export function HelpSheet({
                   {payment && (
                     <p className="mt-3 flex items-center justify-center gap-1 text-[10.5px] text-[#736E66]">
                       <BadgeCheck className="size-3" aria-hidden="true" />
-                      Payment {payment.id} · sandbox reference
+                      {t('Payment {id} · sandbox reference', { id: payment.id })}
                     </p>
                   )}
                   <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5">
                     <Pill tone="amber">{t('Sandbox')}</Pill>
-                    <Pill tone="neutral">{anonymous ? 'Anonymous' : 'Named'}</Pill>
+                    <Pill tone="neutral">{anonymous ? t('Anonymous') : t('Named')}</Pill>
                   </div>
                 </div>
               )}

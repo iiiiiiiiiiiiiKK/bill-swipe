@@ -164,8 +164,8 @@ export default function Community() {
                   {post.kind === 'milestone' && <Pill tone="neutral">{t('Update')}</Pill>}
                   <span className="text-[11px] text-[#736E66]">· {timeAgo(post.createdAt)}</span>
                 </div>
-                <p className="mt-1.5 text-[13.5px] leading-relaxed text-[#3A3740]">{postCopy.headline(post)}</p>
-                {post.detail && <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{postCopy.detail(post)}</p>}
+                <p className="mt-1.5 text-[13.5px] leading-relaxed text-[#3A3740]">{t(postCopy.headline(post))}</p>
+                {post.detail && <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{t(postCopy.detail(post))}</p>}
                 {post.billId && (
                   <Link
                     to={`/bills/${post.billId}`}
@@ -215,7 +215,7 @@ export default function Community() {
                     <div className="min-w-0 flex-1">
                       <p className="text-[12px] leading-relaxed">
                         <span className="font-semibold">{t(c.author.displayName)}</span>{' '}
-                        <span className="text-[#3A3740]">{t(c.body)}</span>
+                        <span className="text-[#3A3740]">{c.body}</span>
                       </p>
                       <p className="text-[10px] text-[#7C776F]">{timeAgo(c.createdAt)}</p>
                     </div>

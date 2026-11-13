@@ -208,7 +208,7 @@ export function BillCard({ bill: rawBill, onSwipe, onOpen, isTop, index, reduced
             <div className="mt-auto pt-3">
               <div className="mb-1.5 flex items-end justify-between text-[12px]">
                 <span className="font-semibold text-[#0F7A52]">
-                  {percent(bill.raisedAmount, bill.targetAmount)}% funded
+                  {t('{n}% funded', { n: percent(bill.raisedAmount, bill.targetAmount) })}
                 </span>
                 <span className="text-muted">
                   {remaining > 0 ? t('{amount} to go', { amount: formatMoney(remaining, bill.currency) }) : t('Goal reached')}

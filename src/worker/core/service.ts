@@ -875,7 +875,9 @@ export function settlePayment(
 
     const payer = db.first<UserRow>('SELECT * FROM users WHERE id = ?', payment.payer_id);
     const owner = db.first<UserRow>('SELECT * FROM users WHERE id = ?', bill.user_id);
-    const payerLabel = payment.is_anonymous === 1 ? 'Someone kind' : payer?.display_name ?? 'Someone kind';
+    const payerLabel = payment.is_anonymous === 1 || payer?.public_profile === 0
+      ? 'Someone kind'
+      : payer?.display_name ?? 'Someone kind';
 
     // Community feed posting (only for non-demo, non-anonymous-if-requested entries)
     db.run(
@@ -884,7 +886,7 @@ export function settlePayment(
       randomId('pst'),
       bill.id,
       payment.id,
-      payment.payer_id,
+      payment.is_anonymous === 1 ? null : payment.payer_id,
       `${payerLabel} helped ${owner?.display_name ?? 'someone'} with ${bill.title}`,
       payment.is_anonymous === 1 ? 'An anonymous helper stepped in.' : 'A new act of kindness just landed.',
       applied,
@@ -1046,7 +1048,16 @@ export function myPayments(ctx: ServiceContext, userId: string): (Payment & { he
 export function receivedHelp(ctx: ServiceContext, userId: string): {
   total: number;
   currency: string;
-  entries: { id: string; billId: string; billTitle: string; amount: number; from: string | null; anonymous: boolean; createdAt: string; status: string }[];
+  entries: {
+    id: string;
+    billId: string;
+    billTitle: string;
+    amount: number;
+    from: string | null;
+    anonymous: boolean;
+    createdAt: string;
+    status: string;
+  }[];
 } {
   const rows = ctx.db.all<HelpRecordRow & { bill_title: string; payment_status: string }>(
     `SELECT h.*, b.title AS bill_title, p.payment_status
@@ -1062,13 +1073,16 @@ export function receivedHelp(ctx: ServiceContext, userId: string): {
   const entries = rows.map((row) => {
     total += row.amount;
     const payer = ctx.db.first<UserRow>('SELECT * FROM users WHERE id = ?', row.payer_id);
+    const payerIsPublic = payer?.public_profile !== 0;
+    const billOwner = ctx.db.first<UserRow>('SELECT * FROM users WHERE id = ?', userId);
+    const ownerVisibleToRequester = billOwner?.public_profile !== 0 || billOwner?.id === userId;
     return {
       id: row.id,
       billId: row.bill_id,
-      billTitle: row.bill_title,
+      billTitle: ownerVisibleToRequester ? row.bill_title : 'A member’s bill',
       amount: row.amount,
-      from: row.is_anonymous === 1 ? null : payer?.display_name ?? null,
-      anonymous: row.is_anonymous === 1,
+      from: row.is_anonymous === 1 || !payerIsPublic ? null : payer?.display_name ?? null,
+      anonymous: row.is_anonymous === 1 || !payerIsPublic,
       createdAt: row.created_at,
       status: row.payment_status,
     };
@@ -1172,37 +1186,58 @@ export function communityFeed(ctx: ServiceContext, viewerId: string | null, limi
       )
       .map((c) => {
         const author = db.first<UserRow>('SELECT * FROM users WHERE id = ?', c.user_id);
+        const hidden = author?.public_profile === 0;
         return {
           id: c.id,
           body: c.body,
           createdAt: c.created_at,
           author: {
-            displayName: author?.display_name ?? 'Someone',
-            username: author?.username ?? 'unknown',
-            avatarUrl: author?.avatar_url ?? null,
-            avatarSeed: author?.avatar_seed ?? '0',
+            displayName: hidden ? 'A member' : author?.display_name ?? 'Someone',
+            username: hidden ? 'private' : author?.username ?? 'unknown',
+            avatarUrl: hidden ? null : author?.avatar_url ?? null,
+            avatarSeed: hidden ? 'private' : author?.avatar_seed ?? '0',
           },
         };
       });
+    const viewer = viewerId ? db.first<UserRow>('SELECT * FROM users WHERE id = ?', viewerId) : null;
+    const postPayment = row.payment_id
+      ? db.first<PaymentRow>('SELECT * FROM payments WHERE id = ?', row.payment_id)
+      : null;
+    const anonymousHelp = postPayment?.is_anonymous === 1;
+    const actorPrivate = actor?.public_profile === 0;
+    const actorHidden = anonymousHelp || (actorPrivate && viewer?.id !== actor?.id && viewer?.role !== 'admin');
+    const billOwner = row.bill_id
+      ? db.first<UserRow>('SELECT u.* FROM users u JOIN bills b ON b.user_id = u.id WHERE b.id = ?', row.bill_id)
+      : null;
+    const ownerPrivate = billOwner?.public_profile === 0;
+    const ownerHidden = ownerPrivate && viewer?.id !== billOwner?.id && viewer?.role !== 'admin';
+    const hideNames = actorHidden || ownerHidden;
     return {
       id: row.id,
       kind: row.kind as CommunityPost['kind'],
-      headline: row.headline,
-      detail: row.detail,
-      amount: row.amount,
+      headline: anonymousHelp
+        ? 'Someone kind helped someone with a bill'
+        : hideNames
+          ? row.kind === 'help'
+            ? 'Someone kind helped someone with a bill'
+            : 'A community update'
+          : row.headline,
+      detail: hideNames ? (row.kind === 'help' ? 'A new act of kindness just landed.' : '') : row.detail,
+      amount: anonymousHelp || hideNames ? null : row.amount,
       currency: row.currency,
       createdAt: row.created_at,
       billId: row.bill_id,
-      billTitle: row.bill_title,
-      actor: actor
-        ? {
-            displayName: actor.display_name,
-            username: actor.username,
-            avatarUrl: actor.avatar_url,
-            avatarSeed: actor.avatar_seed,
-            isAnonymous: false,
-          }
-        : null,
+      billTitle: ownerHidden ? null : row.bill_title,
+      actor:
+        actor && !actorHidden
+          ? {
+              displayName: actor.display_name,
+              username: actor.username,
+              avatarUrl: actor.avatar_url,
+              avatarSeed: actor.avatar_seed,
+              isAnonymous: false,
+            }
+          : null,
       likes,
       liked,
       comments,

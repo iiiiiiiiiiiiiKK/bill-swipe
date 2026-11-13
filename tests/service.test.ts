@@ -6,6 +6,8 @@ import {
   adminPayments,
   adminSetUserStatus,
   adminUsers,
+  addComment,
+  receivedHelp,
   billDetailFor,
   closeBill,
   communityFeed,
@@ -379,6 +381,59 @@ describe('payments', () => {
     expect(db.first<{ raised_amount: number }>('SELECT raised_amount FROM bills WHERE id = ?', billId)!.raised_amount).toBe(0);
   });
 
+  it('respects a private profile in public bill and helper DTOs', async () => {
+    const { billId, helperId, ownerId } = await setupBill();
+    const admin = db.first<{ id: string }>(`SELECT id FROM users WHERE role = 'admin'`)!;
+    const intent = createPaymentIntent(ctx, helperId, { billId, amount: 500, idempotencyKey: 'private-profile-key-1' });
+    settlePayment(ctx, intent.payment.id, { source: 'sandbox' });
+
+    db.run('UPDATE users SET public_profile = 0 WHERE id = ?', ownerId);
+    db.run('UPDATE users SET public_profile = 0 WHERE id = ?', helperId);
+
+    const guestView = billDetailFor(ctx, billId, null);
+    expect(guestView.owner.displayName).toBe('A member');
+    expect(guestView.owner.username).toBe('private');
+    expect(guestView.owner.id).toBe('private');
+    expect(guestView.owner.avatarUrl).toBeNull();
+    expect(guestView.helpers[0]!.helper?.displayName).toBe('A member');
+    expect(guestView.helpers[0]!.helper?.username).toBe('private');
+
+    const ownerView = billDetailFor(ctx, billId, ownerId);
+    expect(ownerView.owner.displayName).not.toBe('A member');
+    expect(ownerView.helpers[0]!.helper?.displayName).toBe('A member');
+    expect(ownerView.helpers[0]!.isAnonymous).toBe(false);
+    expect(receivedHelp(ctx, ownerId).entries[0]!.billTitle).toBe('Electricity bill after the storm');
+    expect(receivedHelp(ctx, ownerId).entries[0]!.from).toBeNull();
+
+    const adminView = billDetailFor(ctx, billId, admin.id);
+    expect(adminView.owner.displayName).not.toBe('A member');
+    expect(adminView.helpers[0]!.helper?.displayName).not.toBe('A member');
+    expect(adminView.helpers[0]!.isAnonymous).toBe(false);
+    expect(receivedHelp(ctx, admin.id).entries).toHaveLength(0);
+
+    const received = receivedHelp(ctx, ownerId);
+    expect(received.entries[0]!.billTitle).toBe('Electricity bill after the storm');
+    expect(received.entries[0]!.from).toBeNull();
+    expect(received.entries[0]!.anonymous).toBe(true);
+
+    const ownerRoleViewer = await newUser('profile_ownerview');
+    db.run('UPDATE users SET public_profile = 0 WHERE id = ?', ownerId);
+    const ownerHiddenFeed = communityFeed(ctx, ownerRoleViewer.userId, 50);
+    expect(ownerHiddenFeed.some((post) => post.billId === billId && post.billTitle !== null)).toBe(false);
+    const hiddenPost = ownerHiddenFeed.find((post) => post.billId === billId)!;
+    expect(hiddenPost.actor).toBeNull();
+    expect(hiddenPost.amount).toBeNull();
+    expect(hiddenPost.headline).toBe('Someone kind helped someone with a bill');
+
+    const post = db.first<{ id: string }>(`SELECT id FROM community_posts WHERE bill_id = ?`, billId)!;
+    addComment(ctx, helperId, post.id, 'A public comment from a private-profile member.');
+    const commentPost = communityFeed(ctx, null, 50).find((item) => item.id === post.id)!;
+    expect(commentPost.comments[0]!.author.displayName).toBe('A member');
+    expect(commentPost.comments[0]!.author.username).toBe('private');
+    expect(commentPost.billTitle).toBeNull();
+    expect(commentPost.actor).toBeNull();
+  });
+
   it('hides anonymous helpers from the public but not from the owner', async () => {
     const { billId, helperId, ownerId } = await setupBill();
     const intent = createPaymentIntent(ctx, helperId, {
@@ -394,7 +449,8 @@ describe('payments', () => {
     expect(anonymousView.helpers[0]!.isAnonymous).toBe(true);
 
     const ownerView = billDetailFor(ctx, billId, ownerId);
-    expect(ownerView.helpers[0]!.helper).not.toBeNull();
+    expect(ownerView.helpers[0]!.helper).toBeNull();
+    expect(ownerView.helpers[0]!.isAnonymous).toBe(true);
   });
 
   it('writes notifications for both sides', async () => {

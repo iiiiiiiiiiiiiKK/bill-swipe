@@ -80,7 +80,10 @@ export default function Activity() {
 
   return (
     <div>
-      <PageHeader title={t('Activity')} description="Everything you have given — and everything that came in.">
+      <PageHeader
+        title={t('Activity')}
+        description={t('Everything you have given — and everything that came in.')}
+      >
         <div className="mt-5 flex gap-1.5 rounded-xl bg-white p-1 ring-1 ring-line">
           {(['given', 'received'] as Tab[]).map((id) => (
             <button
@@ -92,7 +95,7 @@ export default function Activity() {
                 tab === id ? 'bg-ink text-white' : 'text-[#57534E] hover:bg-black/[0.04]',
               )}
             >
-              {id === 'given' ? 'Help I gave' : 'Help I received'}
+              {id === 'given' ? t('Help I gave') : t('Help I received')}
             </button>
           ))}
         </div>
@@ -114,7 +117,7 @@ export default function Activity() {
                 <EmptyState
                   icon={<Heart className="size-6" aria-hidden="true" />}
                   title={t('No help sent yet')}
-                  description="When you choose to help someone, the payment and its status will show up here."
+                  description={t('When you choose to help someone, the payment and its status will show up here.')}
                   action={<LinkButton to="/discover">{t('Find a bill to help')}</LinkButton>}
                 />
               </div>
@@ -145,11 +148,11 @@ export default function Activity() {
                       <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted">
                         {timeAgo(payment.createdAt)}
                         <span className="text-[#CFC9C0]">·</span>
-                        {payment.isAnonymous ? 'Anonymous' : 'Named'}
+                        {payment.isAnonymous ? t('Anonymous') : t('Named')}
                         {payment.sandbox && (
                           <>
                             <span className="text-[#CFC9C0]">·</span>
-                            sandbox
+                            {t('Sandbox')}
                           </>
                         )}
                       </p>
@@ -163,8 +166,9 @@ export default function Activity() {
               </ul>
             )}
             <p className="mt-3 text-[11px] leading-relaxed text-[#736E66]">
-              Refunds are processed by moderators. A refunded payment reverses the bill&apos;s raised total — the record
-              stays here with its new status.
+              {t(
+                'Refunds are processed by moderators. A refunded payment reverses the bill’s raised total — the record stays here with its new status.',
+              )}
             </p>
           </>
         ) : (
@@ -179,7 +183,9 @@ export default function Activity() {
                 <EmptyState
                   icon={<Inbox className="size-6" aria-hidden="true" />}
                   title={t('No help received yet')}
-                  description="Once someone helps one of your bills, their contribution appears here — anonymously if they chose that."
+                  description={t(
+                    'Once someone helps one of your bills, their contribution appears here — anonymously if they chose that.',
+                  )}
                   action={<LinkButton to="/bills/new">{t('Post a bill')}</LinkButton>}
                 />
               </div>
@@ -191,9 +197,11 @@ export default function Activity() {
                       <Heart className="size-4" aria-hidden="true" />
                     </span>
                     <Link to={`/bills/${entry.billId}`} className="min-w-0 flex-1">
-                      <p className="truncate text-[13px] font-semibold hover:text-brand-ink">{entry.billTitle}</p>
+                      <p className="truncate text-[13px] font-semibold hover:text-brand-ink">
+                        {entry.billTitle === 'A member’s bill' ? t('A member’s bill') : entry.billTitle}
+                      </p>
                       <p className="truncate text-[11px] text-muted">
-                        {entry.anonymous ? 'Anonymous helper' : entry.from ?? 'A helper'} · {timeAgo(entry.createdAt)}
+                        {entry.anonymous ? t('Anonymous helper') : entry.from ?? t('A helper')} · {timeAgo(entry.createdAt)}
                       </p>
                     </Link>
                     <p className="money-tabular shrink-0 text-[13.5px] font-bold">{money(entry.amount)}</p>
@@ -202,7 +210,7 @@ export default function Activity() {
               </ul>
             )}
             <p className="mt-3 text-[11px] leading-relaxed text-[#736E66]">
-              Helpers who choose anonymity stay hidden from everyone except moderators handling a dispute.
+              {t('Helpers who choose anonymity stay hidden from everyone except moderators handling a dispute.')}
             </p>
           </>
         )}

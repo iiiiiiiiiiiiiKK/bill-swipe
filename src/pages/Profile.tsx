@@ -118,10 +118,10 @@ export default function ProfilePage() {
               <div className="min-w-0">
                 <h2 className="flex items-center gap-2 text-[19px] font-semibold">
                   {user.displayName}
-                  {user.emailVerified && <Check className="size-4 text-mint" aria-label="Email verified" />}
+                  {user.emailVerified && <Check className="size-4 text-mint" aria-label={t('Email verified')} />}
                 </h2>
                 <p className="text-[12.5px] text-muted">
-                  @{user.username} · joined {formatDate(user.createdAt)}
+                  @{user.username} · {t('Joined {date}', { date: formatDate(user.createdAt) })}
                 </p>
               </div>
               <div className="flex gap-1.5">
@@ -238,25 +238,25 @@ export default function ProfilePage() {
           <div className="mt-3 space-y-1.5">
             <Toggle
               label={t('Help anonymously by default')}
-              description="Pre-checks the anonymous option on every payment."
+              description={t('Pre-checks the anonymous option on every payment.')}
               checked={prefs.anonymousByDefault}
               onChange={(v) => setPrefs((p) => ({ ...p, anonymousByDefault: v }))}
             />
             <Toggle
               label={t('Public profile')}
-              description="Let other members see your name and help stats."
+              description={t('Let other members see your name and help stats.')}
               checked={prefs.publicProfile}
               onChange={(v) => setPrefs((p) => ({ ...p, publicProfile: v }))}
             />
             <Toggle
               label={t('Email notifications')}
-              description="Payment receipts, bill approvals and review results."
+              description={t('Payment receipts, bill approvals and review results.')}
               checked={prefs.notifyEmail}
               onChange={(v) => setPrefs((p) => ({ ...p, notifyEmail: v }))}
             />
             <Toggle
               label={t('In-app notifications')}
-              description="The bell icon updates."
+              description={t('The bell icon updates.')}
               checked={prefs.notifyInApp}
               onChange={(v) => setPrefs((p) => ({ ...p, notifyInApp: v }))}
             />
@@ -287,7 +287,7 @@ export default function ProfilePage() {
               value={pwd.newPassword}
               onChange={(v) => setPwd((p) => ({ ...p, newPassword: v }))}
               autoComplete="new-password"
-              hint="At least 8 characters. Signs you out everywhere."
+              hint={t('At least 8 characters. Signs you out everywhere.')}
             />
           </div>
           <Button

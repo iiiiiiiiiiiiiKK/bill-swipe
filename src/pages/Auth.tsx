@@ -102,14 +102,14 @@ export function LoginPage() {
     setFields({});
     try {
       const user = await login(email.trim(), password);
-      toast.success(`Welcome back, ${user.displayName.split(' ')[0]}`);
+      toast.success(t('Welcome back, {name}', { name: user.displayName.split(' ')[0]! }));
       navigate(redirectTo, { replace: true });
     } catch (err) {
       if (err instanceof ApiRequestError) {
         setError(err.message);
         setFields(err.fields ?? {});
       } else {
-        setError('Something went wrong. Please try again.');
+        setError(t('Something went wrong. Please try again.'));
       }
     } finally {
       setBusy(false);
@@ -138,7 +138,7 @@ export function LoginPage() {
           autoComplete="email"
           value={email}
           onChange={setEmail}
-          placeholder="you@example.com"
+          placeholder={t('you@example.com')}
           error={fields.email}
           required
         />
@@ -150,14 +150,14 @@ export function LoginPage() {
           autoComplete="current-password"
           value={password}
           onChange={setPassword}
-          placeholder="Your password"
+          placeholder={t('Your password')}
           error={fields.password}
           required
           trailing={
             <button
               type="button"
               onClick={() => setShow((s) => !s)}
-              aria-label={show ? 'Hide password' : 'Show password'}
+              aria-label={t(show ? 'Hide password' : 'Show password')}
               className="flex size-8 items-center justify-center rounded-lg text-muted transition hover:bg-black/[0.05] hover:text-ink"
             >
               {show ? <EyeOff className="size-[18px]" aria-hidden="true" /> : <Eye className="size-[18px]" aria-hidden="true" />}
@@ -215,14 +215,14 @@ export function RegisterPage() {
         username: form.username.trim().toLowerCase(),
         displayName: form.displayName.trim() || form.username.trim(),
       });
-      toast.success('Account created', 'Start swiping — you can post a bill any time.');
+      toast.success(t('Account created'), t('Start swiping — you can post a bill any time.'));
       navigate('/discover', { replace: true });
     } catch (err) {
       if (err instanceof ApiRequestError) {
         setError(err.message);
         setFields(err.fields ?? {});
       } else {
-        setError('Something went wrong. Please try again.');
+        setError(t('Something went wrong. Please try again.'));
       }
     } finally {
       setBusy(false);
@@ -251,7 +251,7 @@ export function RegisterPage() {
           autoComplete="email"
           value={form.email}
           onChange={(v) => setForm((f) => ({ ...f, email: v }))}
-          placeholder="you@example.com"
+          placeholder={t('you@example.com')}
           error={fields.email}
           required
         />
@@ -262,7 +262,7 @@ export function RegisterPage() {
           autoComplete="username"
           value={form.username}
           onChange={(v) => setForm((f) => ({ ...f, username: v.toLowerCase().replace(/[^a-z0-9_]/g, '') }))}
-          placeholder="kindness_inc"
+          placeholder={t('kindness_inc')}
           error={fields.username}
           hint={
             form.username && !usernameValid
@@ -286,7 +286,7 @@ export function RegisterPage() {
             <button
               type="button"
               onClick={() => setShow((s) => !s)}
-              aria-label={show ? 'Hide password' : 'Show password'}
+              aria-label={t(show ? 'Hide password' : 'Show password')}
               className="flex size-8 items-center justify-center rounded-lg text-muted transition hover:bg-black/[0.05] hover:text-ink"
             >
               {show ? <EyeOff className="size-[18px]" aria-hidden="true" /> : <Eye className="size-[18px]" aria-hidden="true" />}

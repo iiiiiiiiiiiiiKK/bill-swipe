@@ -204,7 +204,7 @@ function BillsPanel() {
       );
       setBills(res.bills);
     } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : 'Failed to load bills');
+      setError(err instanceof ApiRequestError ? err.message : t('Failed to load bills'));
     }
   }, [status, query]);
 
@@ -219,7 +219,7 @@ function BillsPanel() {
       toast.success(`Bill ${action}d`);
       await load();
     } catch (err) {
-      toast.error('Action failed', err instanceof ApiRequestError ? err.message : undefined);
+      toast.error(t('Action failed'), err instanceof ApiRequestError ? err.message : undefined);
     } finally {
       setBusy(null);
     }
@@ -304,7 +304,7 @@ function BillsPanel() {
                   variant="danger"
                   disabled={busy === bill.id}
                   onClick={() => {
-                    const note = window.prompt('Reason for rejection (shown to the owner)') ?? '';
+                    const note = window.prompt(t('Reason for rejection (shown to the owner)')) ?? '';
                     if (note) void review(bill.id, 'reject', note);
                   }}
                 >
@@ -343,14 +343,15 @@ function UsersPanel({ adminId }: { adminId: string }) {
   }, [load]);
 
   async function setStatus(id: string, status: string) {
-    const reason = status === 'active' ? 'Restored by admin' : window.prompt(`Reason for ${status}:`) ?? '';
+    const statusLabel = t(status);
+    const reason = status === 'active' ? 'Restored by admin' : window.prompt(t('Reason for {status}:', { status: statusLabel })) ?? '';
     if (status !== 'active' && !reason) return;
     try {
       await api.post(`/admin/users/${id}/status`, { status, reason });
-      toast.success(`User ${status}`);
+      toast.success(t('User {status}', { status: statusLabel }));
       await load();
     } catch (err) {
-      toast.error('Action failed', err instanceof ApiRequestError ? err.message : undefined);
+      toast.error(t('Action failed'), err instanceof ApiRequestError ? err.message : undefined);
     }
   }
 
@@ -374,15 +375,15 @@ function UsersPanel({ adminId }: { adminId: string }) {
             <div className="min-w-0 flex-1">
               <p className="flex flex-wrap items-center gap-1.5 text-[13px] font-semibold">
                 {person.displayName}
-                {person.role === 'admin' && <Pill tone="brand">admin</Pill>}
-                {person.isDemo && <Pill tone="neutral">demo</Pill>}
+                {person.role === 'admin' && <Pill tone="brand">{t('admin')}</Pill>}
+                {person.isDemo && <Pill tone="neutral">{t('demo')}</Pill>}
                 <Pill tone={person.accountStatus === 'active' ? 'mint' : person.accountStatus === 'banned' ? 'coral' : 'amber'}>
-                  {person.accountStatus}
+                  {t(person.accountStatus)}
                 </Pill>
               </p>
               <p className="truncate text-[11.5px] text-muted">
-                {person.email} · {person.billsPosted} bills · {money(person.helpedAmount)} helped · joined{' '}
-                {formatDate(person.createdAt)}
+                {person.email} · {t('{n} bills', { n: person.billsPosted })} · {money(person.helpedAmount)} {t('helped')} ·{' '}
+                {t('Joined {date}', { date: formatDate(person.createdAt) })}
               </p>
             </div>
             {person.id !== adminId && (
@@ -425,14 +426,14 @@ function PaymentsPanel() {
   }, [load]);
 
   async function refund(id: string) {
-    const note = window.prompt('Refund note (visible to the payer):', 'Refunded after review');
+    const note = window.prompt(t('Refund note (visible to the payer):'), t('Refunded after review'));
     if (!note) return;
     try {
       await api.post(`/admin/payments/${id}/refund`, { note });
-      toast.success('Refund recorded');
+      toast.success(t('Refund recorded'));
       await load();
     } catch (err) {
-      toast.error('Refund failed', err instanceof ApiRequestError ? err.message : undefined);
+      toast.error(t('Refund failed'), err instanceof ApiRequestError ? err.message : undefined);
     }
   }
 
@@ -501,7 +502,7 @@ function ReportsPanel() {
       toast.success(`Report ${status}`);
       await load();
     } catch (err) {
-      toast.error('Failed', err instanceof ApiRequestError ? err.message : undefined);
+      toast.error(t('Failed'), err instanceof ApiRequestError ? err.message : undefined);
     }
   }
 

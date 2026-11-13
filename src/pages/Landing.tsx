@@ -396,10 +396,14 @@ function FeaturedBills({ bills }: { bills: BillSummary[] }) {
   );
 }
 
+function isCommunityPost(item: CommunityPost | { id: string; headline: string; detail: string; when: string }): item is CommunityPost {
+  return 'kind' in item && 'actor' in item;
+}
+
 function RecentKindness({ posts }: { posts: CommunityPost[] }) {
   const { t, timeAgo } = useI18n();
   const postCopy = usePostCopy();
-  const fallback = useMemo(
+  const fallback: { id: string; headline: string; detail: string; when: string }[] = useMemo(
     () => [
       { id: 'f1', headline: 'Someone helped Maria R. with groceries', detail: 'A $25 top-up arrived four hours after she posted.', when: '2h ago' },
       { id: 'f2', headline: 'James K. reached 78% of his therapy bill', detail: 'Eleven people chipped in this week.', when: '6h ago' },
@@ -438,10 +442,10 @@ function RecentKindness({ posts }: { posts: CommunityPost[] }) {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-[14px] font-semibold leading-snug">
-                  {'headline' in item ? postCopy.headline(item as CommunityPost) : ''}
+                  {isCommunityPost(item) ? t(postCopy.headline(item)) : t(item.headline)}
                 </p>
                 <p className="mt-0.5 line-clamp-2 text-[13px] leading-relaxed text-muted">
-                  {'detail' in item ? postCopy.detail(item as CommunityPost) : ''}
+                  {isCommunityPost(item) ? t(postCopy.detail(item)) : t(item.detail)}
                 </p>
               </div>
               <span className="shrink-0 text-[11.5px] text-[#736E66]">

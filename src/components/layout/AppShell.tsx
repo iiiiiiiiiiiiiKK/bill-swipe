@@ -206,7 +206,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               {({ isActive }) => (
                 <>
                   <item.icon className={cn('size-[21px]', isActive && 'stroke-[2.4]')} aria-hidden="true" />
-                  <span className="truncate">{item.label}</span>
+                  <span className="truncate">{t(item.label)}</span>
                   {isActive && (
                     <motion.span
                       layoutId="mobile-nav-dot"

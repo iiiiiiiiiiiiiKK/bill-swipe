@@ -27,11 +27,45 @@ export function summarize(db: Db, bill: BillRow, viewerId: string | null): BillS
   const viewerAction = viewerId
     ? db.first<{ action: string }>('SELECT action FROM swipes WHERE user_id = ? AND bill_id = ?', viewerId, bill.id)?.action ?? null
     : null;
+  const owner = ownerOf(db, bill);
   return toBillSummary(bill, {
-    owner: ownerOf(db, bill),
+    owner: publicIdentity(db, owner.id, viewerId) ?? owner,
     helperCount: helperCountFor(db, bill.id),
     viewerAction,
   });
+}
+
+/**
+ * Public-facing identity of an account.
+ *
+ * A member can switch their profile to private; when they do, the public
+ * surface keeps the row (so counts and history stay correct) but replaces the
+ * identifier with a neutral label. Owners and admins always see the real thing.
+ */
+export function publicIdentity(
+  db: Db,
+  userId: string,
+  viewerId: string | null,
+): PublicUser | null {
+  const user = db.first<UserRow>('SELECT * FROM users WHERE id = ?', userId);
+  if (!user) return null;
+  const viewer = viewerId ? db.first<UserRow>('SELECT * FROM users WHERE id = ?', viewerId) : null;
+  const privileged = viewer?.role === 'admin' || viewer?.id === user.id;
+  if (user.public_profile === 0 && !privileged) {
+    return {
+      id: 'private',
+      username: 'private',
+      displayName: 'A member',
+      avatarUrl: null,
+      avatarSeed: 'private',
+      bio: '',
+      country: '',
+      region: '',
+      createdAt: '',
+      isDemo: user.is_demo === 1,
+    };
+  }
+  return toPublicUser(user);
 }
 
 export function helperIdentity(
@@ -40,23 +74,9 @@ export function helperIdentity(
   viewerId: string | null,
 ): HelpRecord['helper'] {
   const anonymous = row.is_anonymous === 1;
-  const isOwnerOrAdmin = (() => {
-    if (!viewerId) return false;
-    const bill = db.first<BillRow>('SELECT * FROM bills WHERE id = ?', row.bill_id);
-    if (bill && bill.user_id === viewerId) return true;
-    const viewer = db.first<UserRow>('SELECT * FROM users WHERE id = ?', viewerId);
-    return viewer?.role === 'admin';
-  })();
-  if (anonymous && !isOwnerOrAdmin) return null;
-  const user = db.first<UserRow>('SELECT * FROM users WHERE id = ?', row.payer_id);
-  if (!user) return null;
-  return {
-    username: user.username,
-    displayName: user.display_name,
-    avatarUrl: user.avatar_url,
-    avatarSeed: user.avatar_seed,
-    isDemo: user.is_demo === 1,
-  };
+  const isAdmin = viewerId ? db.first<UserRow>('SELECT role FROM users WHERE id = ?', viewerId)?.role === 'admin' : false;
+  if (anonymous && !isAdmin) return null;
+  return publicIdentity(db, row.payer_id, viewerId);
 }
 
 export function helpRecordsFor(db: Db, billId: string, viewerId: string | null, limit = 20): HelpRecord[] {
